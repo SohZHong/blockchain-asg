@@ -1,0 +1,38 @@
+{
+  "author": "SZH",
+  "bugs": {
+    "url": "https://github.com/celo-org/celo-composer/issues"
+  },
+  "description": "Custom Celo Composer project.",
+  "homepage": "https://github.com/celo-org/celo-composer/blob/main/README.md",
+  "keywords": [
+    "celo-composer",
+    "celo"
+  ],
+  "license": "MIT",
+  "name": "blockchain-asg",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/celo-org/celo-composer.git"
+  },
+  "scripts": {
+    "react-app:dev": "yarn workspace @blockchain-asg/react-app dev",
+    "react-app:build": "yarn workspace @blockchain-asg/react-app build",
+    "react-app:start": "yarn workspace @blockchain-asg/react-app start",
+    "react-app:lint": "yarn workspace @blockchain-asg/react-app lint",
+    "hardhat:postinstall": "yarn workspace @blockchain-asg/hardhat postinstall",
+    "hardhat:compile": "yarn workspace @blockchain-asg/hardhat compile",
+    "hardhat:tsc": "yarn workspace @blockchain-asg/hardhat tsc",
+    "hardhat:build": "yarn workspace @blockchain-asg/hardhat build",
+    "hardhat:clean": "yarn workspace @blockchain-asg/hardhat clean",
+    "hardhat:run:node": "yarn workspace @blockchain-asg/hardhat run:node",
+    "hardhat:test": "yarn workspace @blockchain-asg/hardhat test",
+    "hardhat:prettier": "yarn workspace @blockchain-asg/hardhat prettier",
+    "hardhat:sync:abis": "yarn workspace @blockchain-asg/hardhat sync:abis"
+  },
+  "version": "1.0.0",
+  "workspaces": [
+    "packages/*"
+  ]
+}

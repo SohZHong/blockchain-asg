@@ -54,6 +54,24 @@ contract MatchManager {
     emit BattleStarted(battleCounter, msg.sender, _opponent);
   }
 
+  function getRandom() internal view returns (uint256) {
+    if (block.chainid == 31337) {
+      // Hardhat local testnet
+      return
+        uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty)));
+    } else {
+      // Actual Celo implementation
+      return
+        uint256(
+          IRandom(
+            IRegistry(0x000000000000000000000000000000000000ce10).getAddressFor(
+              keccak256(abi.encodePacked('Random'))
+            )
+          ).random()
+        );
+    }
+  }
+
   function attack(uint256 _battleId) external {
     Battle storage battle = battles[_battleId];
 
@@ -69,13 +87,7 @@ contract MatchManager {
       : battle.player1;
 
     // Generate random damage within range
-    uint256 randomHash = uint256(
-      IRandom(
-        IRegistry(0x000000000000000000000000000000000000ce10).getAddressFor(
-          keccak256(abi.encodePacked('Random'))
-        )
-      ).random()
-    );
+    uint256 randomHash = getRandom();
 
     uint256 damage = attacker.minDamage +
       (randomHash % (attacker.maxDamage - attacker.minDamage + 1));

@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.24;
 
-import '../celo/celo-monorepo/packages/protocol/contracts/common/UsingRegistryV2.sol';
+import '@celo/contracts/identity/interfaces/IRandom.sol';
+import '@celo/contracts/common/interfaces/IRegistry.sol';
 
-contract MatchManager is UsingRegistryV2 {
+contract MatchManager {
   struct Player {
     address playerAddress;
     uint256 hp;
@@ -68,7 +69,14 @@ contract MatchManager is UsingRegistryV2 {
       : battle.player1;
 
     // Generate random damage within range
-    uint256 randomHash = uint256(getRandom().random());
+    uint256 randomHash = uint256(
+      IRandom(
+        IRegistry(0x000000000000000000000000000000000000ce10).getAddressFor(
+          keccak256(abi.encodePacked('Random'))
+        )
+      ).random()
+    );
+
     uint256 damage = attacker.minDamage +
       (randomHash % (attacker.maxDamage - attacker.minDamage + 1));
 
@@ -76,7 +84,7 @@ contract MatchManager is UsingRegistryV2 {
     if (damage >= defender.hp) {
       defender.hp = 0;
       battle.active = false;
-      emit BattleEnded(attacker.playerAddress);
+      emit BattleEnded(_battleId, attacker.playerAddress);
     } else {
       defender.hp -= damage;
 

@@ -56,7 +56,7 @@
 
 ## About The Project
 
-Celo Composer allows you to quickly build, deploy, and iterate on decentralized applications using Celo. It provides a number of frameworks, templates, deployment and component support, and Celo specific functionality to help you get started with your next dApp. 
+Celo Composer allows you to quickly build, deploy, and iterate on decentralized applications using Celo. It provides a number of frameworks, templates, deployment and component support, and Celo specific functionality to help you get started with your next dApp.
 
 It is the perfect lightweight starter-kit for any hackathon and for quickly testing out integrations and deployments on Celo.
 
@@ -96,7 +96,7 @@ npx @celo/celo-composer@latest create
 - Step 2: Provide the Project Name: You will be prompted to enter the name of your project.
 
 ```text
-What is your project name: 
+What is your project name:
 ```
 
 - Step 3: Choose to Use Hardhat: You will be asked if you want to use Hardhat. Select Yes or No.
@@ -133,7 +133,6 @@ Project Owner name:
 ```
 
 ## Install Dependencies
-
 
 Once your custom dApp has been created, just install dependencies, either with yarn:
 
@@ -192,7 +191,6 @@ Thank you for using Celo Composer! If you have any questions or need further ass
 
 **_🔥Voila, you have a dApp ready to go. Start building your dApp on Celo._**
 
-
 ## Add UI Components
 
 To keep the Celo Composer as lightwieght as possible we didn't add any components but rather a guide on how to add the components you need yourself with a very simple to use components library. To learn how to add UI components using [ShadCN](https://ui.shadcn.com/) in this project, refer to the [UI Components Guide](./docs/UI_COMPONENTS.md).
@@ -200,7 +198,6 @@ To keep the Celo Composer as lightwieght as possible we didn't add any component
 ## Deploy with Vercel
 
 The Celo Composer is a great tool for hackathons and fast deployments. We created a guide for you, using the Vercel CLI to create a live deployment in minutes. For detailed instructions on deploying the Next.js app using Vercel CLI, refer to the [Deployment Guide](./docs/DEPLOYMENT_GUIDE.md).
-
 
 ## Supported Frameworks
 
@@ -234,7 +231,6 @@ Checkout [minipay docs](https://docs.celo.org/developer/build-on-minipay/overvie
 
 Checkout [valora docs](https://docs.valora.xyz/) to learn more about it.
 
-
 ## Support
 
 Join the Celo Discord server at <https://chat.celo.org>. Reach out on the dedicated repo channel [here](https://discord.com/channels/600834479145353243/941003424298856448).
@@ -260,6 +256,7 @@ We welcome contributions from the community.
 Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 <!-- CONTACT -->
+
 ## Contact
 
 - [@CeloDevs](https://twitter.com/CeloDevs)

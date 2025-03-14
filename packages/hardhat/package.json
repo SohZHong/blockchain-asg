@@ -19,6 +19,7 @@
     "chain": "^0.4.0",
     "hardhat": "^2.22.15",
     "hardhat-gas-reporter": "^1.0.8",
+    "hardhat-multibaas-plugin": "^0.3.8",
     "solidity-coverage": "^0.8.1",
     "ts-node": "^10.9.2",
     "typechain": "^8.3.2",

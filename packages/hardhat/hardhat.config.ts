@@ -2,11 +2,18 @@ import '@nomicfoundation/hardhat-toolbox';
 import '@nomicfoundation/hardhat-verify';
 import { config as dotEnvConfig } from 'dotenv';
 import { HardhatUserConfig } from 'hardhat/config';
+import 'hardhat-multibaas-plugin';
 
 dotEnvConfig();
 
 const config: HardhatUserConfig = {
+  defaultNetwork: 'development',
   networks: {
+    development: {
+      url: `${process.env.MULTIBAAS_DEPLOYMENT_URL}/web3/${process.env.MULTIBAAS_API_KEY}`,
+      chainId: 44787,
+      accounts: [process.env.PRIVATE_KEY ?? '0x0'],
+    },
     alfajores: {
       accounts: [process.env.PRIVATE_KEY ?? '0x0'],
       url: 'https://alfajores-forno.celo-testnet.org',
@@ -15,6 +22,13 @@ const config: HardhatUserConfig = {
       accounts: [process.env.PRIVATE_KEY ?? '0x0'],
       url: 'https://forno.celo.org',
     },
+  },
+  // Configuration for multibaas
+  mbConfig: {
+    apiKey: process.env.MULTIBAAS_API_KEY ?? '',
+    host: process.env.MULTIBAAS_DEPLOYMENT_URL ?? '',
+    allowUpdateAddress: ['development'],
+    allowUpdateContract: ['development'],
   },
   etherscan: {
     apiKey: {

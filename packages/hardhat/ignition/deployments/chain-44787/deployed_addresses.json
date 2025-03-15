@@ -1,3 +1,4 @@
 {
-  "MatchManagerModule#MatchManager": "0xe0dBc74bB3795f69b763629752c27DF2e58d6f58"
+  "EntryPointModule#CeloEntryPoint": "0xcBCfb18D903b74A570f2ab1C3b60FE5692731E0e",
+  "PaymasterModule#CeloPaymaster": "0x3077375B865B58Df3954D139598abea6fA5C38B5"
 }

@@ -10,7 +10,7 @@ const config: HardhatUserConfig = {
   defaultNetwork: 'development',
   networks: {
     development: {
-      url: `${process.env.MULTIBAAS_DEPLOYMENT_URL}/web3/${process.env.MULTIBAAS_API_KEY}`,
+      url: `${process.env.MULTIBAAS_DEPLOYMENT_URL}/web3/${process.env.MULTIBAAS_ADMIN_API_KEY}`,
       chainId: 44787,
       accounts: [process.env.PRIVATE_KEY ?? '0x0'],
     },
@@ -25,7 +25,7 @@ const config: HardhatUserConfig = {
   },
   // Configuration for multibaas
   mbConfig: {
-    apiKey: process.env.MULTIBAAS_API_KEY ?? '',
+    apiKey: process.env.MULTIBAAS_ADMIN_API_KEY ?? '',
     host: process.env.MULTIBAAS_DEPLOYMENT_URL ?? '',
     allowUpdateAddress: ['development'],
     allowUpdateContract: ['development'],
@@ -57,7 +57,15 @@ const config: HardhatUserConfig = {
   sourcify: {
     enabled: false,
   },
-  solidity: '0.8.24',
+  solidity: {
+    version: '0.8.24',
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 1000,
+      },
+    },
+  },
 };
 
 export default config;

@@ -9,7 +9,6 @@ import '@openzeppelin/contracts/utils/cryptography/ECDSA.sol';
 import '@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol';
 
 /**
- * A sample paymaster that uses external service to decide whether to pay for the UserOp.
  * The paymaster trusts an external signer to sign the transaction.
  * The calling user must pass the UserOp to that external signer first, which performs
  * whatever off-chain verification before signing the UserOp.

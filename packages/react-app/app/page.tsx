@@ -1,23 +1,19 @@
 'use client';
 
+import { wagmiConfig } from '@/services/wagmi/wagmiConfig';
 import { useEffect, useState } from 'react';
-
+import { getChainId } from '@wagmi/core';
 import { useAccount } from 'wagmi';
+import { useAAProvider } from '@/hooks/useAAProvider';
 
 export default function Home() {
   const [userAddress, setUserAddress] = useState('');
   const [isMounted, setIsMounted] = useState(false);
   const { address, isConnected } = useAccount();
-
+  const { aaWallet } = useAAProvider();
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  useEffect(() => {
-    if (isConnected && address) {
-      setUserAddress(address);
-    }
-  }, [address, isConnected]);
 
   if (!isMounted) {
     return null;

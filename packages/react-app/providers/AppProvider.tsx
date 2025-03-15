@@ -3,43 +3,27 @@
 import '@rainbow-me/rainbowkit/styles.css';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import {
-  RainbowKitProvider,
-  connectorsForWallets,
-} from '@rainbow-me/rainbowkit';
-import { WagmiProvider, createConfig, http } from 'wagmi';
-import { celo, celoAlfajores } from 'wagmi/chains';
-
+import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { WagmiProvider } from 'wagmi';
 import Layout from '../components/Layout';
-import { injectedWallet } from '@rainbow-me/rainbowkit/wallets';
-
-const connectors = connectorsForWallets(
-  [
-    {
-      groupName: 'Recommended',
-      wallets: [injectedWallet],
+import { useEffect, useState } from 'react';
+import { wagmiConfig } from '@/services/wagmi/wagmiConfig';
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
     },
-  ],
-  {
-    appName: 'Celo Composer',
-    projectId: process.env.WC_PROJECT_ID ?? '044601f65212332475a09bc14ceb3c34',
-  }
-);
-
-const config = createConfig({
-  connectors,
-  chains: [celo, celoAlfajores],
-  transports: {
-    [celo.id]: http(),
-    [celoAlfajores.id]: http(),
   },
 });
-
-const queryClient = new QueryClient();
-
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
-    <WagmiProvider config={config}>
+    <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider>
           <Layout>{children}</Layout>

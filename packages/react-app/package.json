@@ -18,13 +18,13 @@
     "@wagmi/connectors": "5.7.9",
     "burner-connector": "0.0.11",
     "encoding": "^0.1.13",
-    "ethers": "^6.13.4",
+    "ethers": "5.8.0",
     "next": "^15.0.1",
     "pino-pretty": "^13.0.0",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "viem": "2.23.11",
-    "wagmi": "2.14.13"
+    "wagmi": "^2.12.32"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.14",

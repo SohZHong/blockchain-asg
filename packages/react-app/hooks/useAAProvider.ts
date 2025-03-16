@@ -6,19 +6,21 @@ import { SimpleAccountAPI } from '@account-abstraction/sdk';
 import { Paymaster } from '@/lib/Paymaster';
 import { ENTRYPOINT_ADDRESS } from '@/common/constants';
 import { wagmiConfig } from '@/services/wagmi/wagmiConfig';
+import { JsonRpcSigner, Provider } from '@ethersproject/providers';
+import { useEthersSigner } from '@/adapters/wagmiToEthers';
 
 export function useAAProvider() {
   const { address, isConnected, connector } = useAccount();
   const chainId = useChainId();
+  const signer = useEthersSigner();
   const [aaWallet, setAAWallet] = useState<SimpleAccountAPI | null>(null);
 
   useEffect(() => {
     async function setupAA() {
       try {
-        if (!isConnected || !address) return;
+        if (!isConnected || !address || !connector || !signer) return;
 
         const walletClient = await getWalletClient(wagmiConfig);
-
         const account = walletClient.account; // This is an EOA account
 
         // Get the factory address based on the chainId
@@ -31,9 +33,9 @@ export function useAAProvider() {
 
         // Create the AA Wallet
         const aaWalletInstance = new SimpleAccountAPI({
-          provider: connector.getProvider(),
+          provider: (await connector.getProvider()) as Provider,
           entryPointAddress: ENTRYPOINT_ADDRESS,
-          owner: account,
+          owner: signer,
           factoryAddress,
           paymasterAPI,
         });

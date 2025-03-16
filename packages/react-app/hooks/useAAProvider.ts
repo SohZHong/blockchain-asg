@@ -1,21 +1,23 @@
 import { useEffect, useState } from 'react';
-import { useAccount, useChainId, useWalletClient } from 'wagmi';
+import { useAccount, useChainId } from 'wagmi';
+import { getWalletClient } from '@wagmi/core';
 import { FACTORIES } from '@/common/factories';
 import { SimpleAccountAPI } from '@account-abstraction/sdk';
 import { Paymaster } from '@/lib/Paymaster';
 import { ENTRYPOINT_ADDRESS } from '@/common/constants';
+import { wagmiConfig } from '@/services/wagmi/wagmiConfig';
 
 export function useAAProvider() {
   const { address, isConnected, connector } = useAccount();
-  const { walletClient } = useWalletClient();
-
   const chainId = useChainId();
   const [aaWallet, setAAWallet] = useState<SimpleAccountAPI | null>(null);
 
   useEffect(() => {
     async function setupAA() {
       try {
-        if (!isConnected || !address || !walletClient) return;
+        if (!isConnected || !address) return;
+
+        const walletClient = await getWalletClient(wagmiConfig);
 
         const account = walletClient.account; // This is an EOA account
 
@@ -25,7 +27,7 @@ export function useAAProvider() {
           throw new Error(`No factory for chainId: ${chainId}`);
 
         // Initialize Paymaster API
-        const paymasterAPI = new Paymaster([address]);
+        const paymasterAPI = new Paymaster([address!]);
 
         // Create the AA Wallet
         const aaWalletInstance = new SimpleAccountAPI({
@@ -35,6 +37,7 @@ export function useAAProvider() {
           factoryAddress,
           paymasterAPI,
         });
+        console.log(aaWalletInstance);
 
         setAAWallet(aaWalletInstance);
       } catch (error) {
@@ -43,7 +46,7 @@ export function useAAProvider() {
     }
 
     setupAA();
-  }, [isConnected, walletClient, chainId]);
+  }, [isConnected, chainId]);
 
   return { aaWallet };
 }

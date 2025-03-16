@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useAccount, useChainId } from 'wagmi';
-import { getWalletClient } from '@wagmi/core';
 import { FACTORIES } from '@/common/factories';
 import { SimpleAccountAPI } from '@account-abstraction/sdk';
 import { Paymaster } from '@/lib/Paymaster';
 import { ENTRYPOINT_ADDRESS } from '@/common/constants';
-import { wagmiConfig } from '@/services/wagmi/wagmiConfig';
-import { JsonRpcSigner, Provider } from '@ethersproject/providers';
+import { Provider } from '@ethersproject/providers';
 import { useEthersSigner } from '@/adapters/wagmiToEthers';
 
 export function useAAProvider() {
@@ -19,10 +17,6 @@ export function useAAProvider() {
     async function setupAA() {
       try {
         if (!isConnected || !address || !connector || !signer) return;
-
-        const walletClient = await getWalletClient(wagmiConfig);
-        const account = walletClient.account; // This is an EOA account
-
         // Get the factory address based on the chainId
         const factoryAddress = FACTORIES[chainId];
         if (!factoryAddress)
@@ -47,7 +41,7 @@ export function useAAProvider() {
     }
 
     setupAA();
-  }, [isConnected, chainId]);
+  }, [isConnected, chainId, signer]);
 
   return { aaWallet };
 }

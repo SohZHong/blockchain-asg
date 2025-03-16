@@ -37,7 +37,6 @@ export function useAAProvider() {
           factoryAddress,
           paymasterAPI,
         });
-        console.log(aaWalletInstance);
 
         setAAWallet(aaWalletInstance);
       } catch (error) {

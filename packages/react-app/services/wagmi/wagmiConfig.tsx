@@ -16,7 +16,7 @@ export const wagmiConfig = createConfig({
   chains: enabledChains,
   connectors: wagmiConnector,
   ssr: true,
-  client({ chain }: { chain: Chain }) {
+  client({ chain }) {
     let rpcFallbacks = [http()];
 
     return createClient({

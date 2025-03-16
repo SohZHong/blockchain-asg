@@ -1,8 +1,6 @@
 'use client';
 
-import { wagmiConfig } from '@/services/wagmi/wagmiConfig';
 import { useEffect, useState } from 'react';
-import { getChainId } from '@wagmi/core';
 import { useAccount } from 'wagmi';
 import { useAAProvider } from '@/hooks/useAAProvider';
 

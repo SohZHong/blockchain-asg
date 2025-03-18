@@ -1,7 +1,7 @@
 import { Web3Auth } from '@web3auth/modal';
 import { EthereumPrivateKeyProvider } from '@web3auth/ethereum-provider';
 import chainConfig from '@/chain.config';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { IProvider } from '@web3auth/base';
 
 interface Web3AuthHook {
@@ -52,7 +52,7 @@ const useWeb3Auth = (): Web3AuthHook => {
   }, [web3authInstance]);
 
   // Login Function
-  const login = async () => {
+  const login = useCallback(async () => {
     if (!web3auth) return;
     try {
       const provider = await web3auth.connect();
@@ -61,10 +61,10 @@ const useWeb3Auth = (): Web3AuthHook => {
     } catch (error) {
       console.error('Login failed:', error);
     }
-  };
+  }, [web3auth]);
 
   // Logout Function
-  const logout = async () => {
+  const logout = useCallback(async () => {
     if (!web3auth) return;
     try {
       await web3auth.logout();
@@ -73,7 +73,7 @@ const useWeb3Auth = (): Web3AuthHook => {
     } catch (error) {
       console.error('Logout failed:', error);
     }
-  };
+  }, [web3auth]);
 
   return { provider, web3auth, login, logout, isAuthenticated };
 };

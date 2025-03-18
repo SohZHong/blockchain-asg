@@ -8,14 +8,14 @@ import {
 } from '@web3auth/base';
 import { AuthAdapter } from '@web3auth/auth-adapter';
 import { WalletServicesPlugin } from '@web3auth/wallet-services-plugin';
-import { getDefaultExternalAdapters } from '@web3auth/default-evm-adapter';
+import { getInjectedAdapters } from '@web3auth/default-evm-adapter';
 
 const chainConfig: CustomChainConfig = {
   chainNamespace: CHAIN_NAMESPACES.EIP155,
   chainId: '0xaef3', // hex of 44787, celo testnet
-  rpcTarget: 'https://rpc.ankr.com/celo',
+  rpcTarget: 'https://alfajores-forno.celo-testnet.org',
   displayName: 'Celo Testnet',
-  blockExplorerUrl: 'https://alfajores-blockscout.celo-testnet.org',
+  blockExplorerUrl: 'https://alfajores.celoscan.io',
   ticker: 'CELO',
   tickerName: 'CELO',
   logo: 'https://cryptologos.cc/logos/celo-celo-logo.png',
@@ -33,7 +33,7 @@ const web3AuthOptions: Web3AuthOptions = {
   web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
   uiConfig: {
     uxMode: 'redirect',
-    appName: 'W3A Heroes',
+    appName: 'Mystic Kaizer',
     appUrl: 'https://web3auth.io/',
     theme: {
       primary: '#7ed6df',
@@ -59,7 +59,7 @@ const authAdapter = new AuthAdapter({
       logoLight: 'https://web3auth.io/images/web3authlog.png',
       logoDark: 'https://web3auth.io/images/web3authlogodark.png',
       defaultLanguage: 'en', // en, de, ja, ko, zh, es, fr, pt, nl, tr
-      mode: 'light', // whether to enable dark, light or auto mode. defaultValue: auto [ system theme]
+      mode: 'auto', // whether to enable dark, light or auto mode. defaultValue: auto [ system theme]
     },
     mfaSettings: {
       deviceShareFactor: {
@@ -88,8 +88,8 @@ const authAdapter = new AuthAdapter({
 
 const walletServicesPlugin = new WalletServicesPlugin();
 
-// const adapters = await getInjectedAdapters({options: web3AuthOptions});
-const adapters = getDefaultExternalAdapters({ options: web3AuthOptions });
+const adapters = getInjectedAdapters({ options: web3AuthOptions });
+// const adapters = getDefaultExternalAdapters({ options: web3AuthOptions });
 
 export const web3AuthContextConfig: Web3AuthContextConfig = {
   web3AuthOptions,

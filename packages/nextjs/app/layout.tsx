@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { AppProvider } from '@/providers/AppProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
+import { Web3AuthContextProvider } from '@/providers/Web3AuthProvider';
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -22,7 +23,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AppProvider>{children}</AppProvider>
+          <Web3AuthContextProvider>
+            <AppProvider>{children}</AppProvider>
+          </Web3AuthContextProvider>
         </ThemeProvider>
       </body>
     </html>

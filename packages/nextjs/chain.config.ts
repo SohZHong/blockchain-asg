@@ -4,9 +4,11 @@ import {
   WEB3AUTH_NETWORK_TYPE,
 } from '@web3auth/base';
 import { WEB3AUTH_NETWORK } from '@web3auth/base';
+import { celoAlfajores, Chain } from 'viem/chains';
 
 interface ChainConfig extends CustomChainConfig {
   web3AuthNetwork: WEB3AUTH_NETWORK_TYPE;
+  clientNetwork: Chain;
 }
 
 const chainConfig: ChainConfig = {
@@ -21,6 +23,7 @@ const chainConfig: ChainConfig = {
   tickerName: 'CELO',
   logo: 'https://cryptologos.cc/logos/celo-celo-logo.png',
   web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
+  clientNetwork: celoAlfajores,
 };
 
 export default chainConfig;

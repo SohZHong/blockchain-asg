@@ -3,10 +3,19 @@ import { EthereumPrivateKeyProvider } from '@web3auth/ethereum-provider';
 import chainConfig from '@/chain.config';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { IProvider } from '@web3auth/base';
+import {
+  createPublicClient,
+  custom,
+  createWalletClient,
+  PublicClient,
+  WalletClient,
+} from 'viem';
 
 interface Web3AuthHook {
   provider: IProvider | null;
   web3auth: Web3Auth | null;
+  publicClient: PublicClient | null;
+  walletClient: WalletClient | null;
   isAuthenticated: boolean;
   login: () => Promise<void>;
   logout: () => Promise<void>;
@@ -17,6 +26,12 @@ const useWeb3Auth = (): Web3AuthHook => {
   const [provider, setProvider] = useState<IProvider | null>(null);
   const [web3auth, setWeb3auth] = useState<Web3Auth | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+
+  // Memorize chain
+  const chain = useMemo(
+    () => chainConfig.clientNetwork,
+    [chainConfig.clientNetwork]
+  );
 
   // Initialize Private Key Provider
   const privateKeyProvider = useMemo(() => {
@@ -33,6 +48,24 @@ const useWeb3Auth = (): Web3AuthHook => {
       privateKeyProvider,
     });
   }, [clientId, chainConfig.web3AuthNetwork]);
+
+  const publicClient = useMemo(() => {
+    return provider
+      ? createPublicClient({
+          chain,
+          transport: custom(provider),
+        })
+      : null;
+  }, [provider, chain]);
+
+  const walletClient = useMemo(() => {
+    return provider
+      ? createWalletClient({
+          chain,
+          transport: custom(provider),
+        })
+      : null;
+  }, [provider, chain]);
 
   useEffect(() => {
     const initWeb3Auth = async () => {
@@ -75,7 +108,15 @@ const useWeb3Auth = (): Web3AuthHook => {
     }
   }, [web3auth]);
 
-  return { provider, web3auth, login, logout, isAuthenticated };
+  return {
+    provider,
+    web3auth,
+    publicClient,
+    walletClient,
+    login,
+    logout,
+    isAuthenticated,
+  };
 };
 
 export default useWeb3Auth;

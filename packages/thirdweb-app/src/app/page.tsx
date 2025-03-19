@@ -1,95 +1,115 @@
 "use client";
 
-import Image from "next/image";
-import { ConnectButton } from "thirdweb/react";
-import thirdwebIcon from "@public/thirdweb.svg";
-import { client } from "./client";
 import ThirdWebConnectButton from "@/components/ThirdWebConnectButton";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import useMultiBaasWithThirdweb from "@/hooks/useMultiBaas";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
+  const FormSchema = z
+    .object({
+      opponent: z
+        .string()
+        .startsWith("0x", { message: "Address must start with 0x" })
+        .regex(/^0x[a-fA-F0-9]{40}$/, {
+          message: "Invalid Ethereum address",
+        }),
+
+      minDmg: z
+        .number()
+        .min(0, { message: "Minimum Damage cannot be negative" }),
+      maxDmg: z
+        .number()
+        .min(0, { message: "Maximum Damage cannot be negative" }),
+    })
+    .refine((data) => data.minDmg <= data.maxDmg, {
+      message: "minDmg should not be greater than maxDmg",
+      path: ["minDmg"], // This will attach the error to the minDmg field
+    });
+
+  const { attack } = useMultiBaasWithThirdweb();
+
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: {
+      opponent: "0x",
+      minDmg: 0,
+      maxDmg: 0,
+    },
+  });
+
+  const onSubmit = async () => {};
+
   return (
     <main className="p-4 pb-10 min-h-[100vh] flex items-center justify-center container max-w-screen-lg mx-auto">
       <div className="py-20">
-        <Header />
-
         <div className="flex justify-center mb-20">
           <ThirdWebConnectButton />
         </div>
-
-        <ThirdwebResources />
+        <Form {...form}>
+          <FormField
+            control={form.control}
+            name="opponent"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Opponent</FormLabel>
+                <FormControl>
+                  <Input placeholder="Opponent" {...field} />
+                </FormControl>
+                <FormDescription>
+                  This is your opponent's wallet address.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="minDmg"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Minimum Damage</FormLabel>
+                <FormControl>
+                  <Input placeholder="Minimum Damage" {...field} />
+                </FormControl>
+                <FormDescription>
+                  This is your opponent's minimum damage.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="maxDmg"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Maximum Damage</FormLabel>
+                <FormControl>
+                  <Input placeholder="Maximum Damage" {...field} />
+                </FormControl>
+                <FormDescription>
+                  This is your opponent's maximum damage.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button onClick={onSubmit}>Submit</Button>
+        </Form>
       </div>
     </main>
-  );
-}
-
-function Header() {
-  return (
-    <header className="flex flex-col items-center mb-20 md:mb-20">
-      <Image
-        src={thirdwebIcon}
-        alt=""
-        className="size-[150px] md:size-[150px]"
-        style={{
-          filter: "drop-shadow(0px 0px 24px #a726a9a8)",
-        }}
-      />
-
-      <h1 className="text-2xl md:text-6xl font-semibold md:font-bold tracking-tighter mb-6 text-zinc-100">
-        thirdweb SDK
-        <span className="text-zinc-300 inline-block mx-1"> + </span>
-        <span className="inline-block -skew-x-6 text-blue-500"> Next.js </span>
-      </h1>
-
-      <p className="text-zinc-300 text-base">
-        Read the{" "}
-        <code className="bg-zinc-800 text-zinc-300 px-2 rounded py-1 text-sm mx-1">
-          README.md
-        </code>{" "}
-        file to get started.
-      </p>
-    </header>
-  );
-}
-
-function ThirdwebResources() {
-  return (
-    <div className="grid gap-4 lg:grid-cols-3 justify-center">
-      <ArticleCard
-        title="thirdweb SDK Docs"
-        href="https://portal.thirdweb.com/typescript/v5"
-        description="thirdweb TypeScript SDK documentation"
-      />
-
-      <ArticleCard
-        title="Components and Hooks"
-        href="https://portal.thirdweb.com/typescript/v5/react"
-        description="Learn about the thirdweb React components and hooks in thirdweb SDK"
-      />
-
-      <ArticleCard
-        title="thirdweb Dashboard"
-        href="https://thirdweb.com/dashboard"
-        description="Deploy, configure, and manage your smart contracts from the dashboard."
-      />
-    </div>
-  );
-}
-
-function ArticleCard(props: {
-  title: string;
-  href: string;
-  description: string;
-}) {
-  return (
-    <a
-      href={props.href + "?utm_source=next-template"}
-      target="_blank"
-      className="flex flex-col border border-zinc-800 p-4 rounded-lg hover:bg-zinc-900 transition-colors hover:border-zinc-700"
-    >
-      <article>
-        <h2 className="text-lg font-semibold mb-2">{props.title}</h2>
-        <p className="text-sm text-zinc-400">{props.description}</p>
-      </article>
-    </a>
   );
 }

@@ -16,6 +16,24 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import {
+  TransactionButton,
+  useActiveAccount,
+  useActiveWallet,
+} from "thirdweb/react";
+import {
+  getViemClientWallet,
+  getViemPublicClient,
+} from "@/adapters/viemAdapter";
+import { getSessionKeyOptions, managerContract } from "../../constants";
+import {
+  prepareContractCall,
+  sendAndConfirmTransaction,
+  sendTransaction,
+  waitForReceipt,
+} from "thirdweb";
+import { addSessionKey } from "thirdweb/extensions/erc4337";
 
 export default function Home() {
   const FormSchema = z
@@ -27,19 +45,20 @@ export default function Home() {
           message: "Invalid Ethereum address",
         }),
 
-      minDmg: z
+      minDmg: z.coerce
         .number()
-        .min(0, { message: "Minimum Damage cannot be negative" }),
-      maxDmg: z
+        .min(1, { message: "Minimum Damage cannot be negative" }),
+      maxDmg: z.coerce
         .number()
-        .min(0, { message: "Maximum Damage cannot be negative" }),
+        .min(1, { message: "Maximum Damage cannot be negative" }),
     })
     .refine((data) => data.minDmg <= data.maxDmg, {
       message: "minDmg should not be greater than maxDmg",
       path: ["minDmg"], // This will attach the error to the minDmg field
     });
 
-  const { attack } = useMultiBaasWithThirdweb();
+  // const { attack, startBattle } = useMultiBaasWithThirdweb();
+  const account = useActiveAccount();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -49,66 +68,128 @@ export default function Home() {
       maxDmg: 0,
     },
   });
+  const onSubmit = async (data: z.infer<typeof FormSchema>) => {
+    // const unsignedTx = await startBattle(
+    //   data.opponent as `0x${string}`,
+    //   1,
+    //   5,
+    //   data.minDmg,
+    //   data.maxDmg
+    // );
+    const tx = prepareContractCall({
+      contract: managerContract,
+      method: "startBattle",
+      params: [data.opponent, 1n, 5n, BigInt(data.minDmg), BigInt(data.maxDmg)],
+    });
+    const transactionResult = await sendAndConfirmTransaction({
+      transaction: tx,
+      account: account!,
+    });
 
-  const onSubmit = async () => {};
-
+    toast("Battle Started", {
+      description: JSON.stringify(transactionResult, null, 2),
+      action: {
+        label: "Close",
+        onClick: () => console.log("Closed"),
+      },
+    });
+  };
   return (
     <main className="p-4 pb-10 min-h-[100vh] flex items-center justify-center container max-w-screen-lg mx-auto">
       <div className="py-20">
         <div className="flex justify-center mb-20">
           <ThirdWebConnectButton />
+          <TransactionButton
+            transaction={() => addSessionKey(getSessionKeyOptions(account))}
+            onTransactionConfirmed={(tx) => {
+              toast("Session Key Added", {
+                description: JSON.stringify(tx, null, 2),
+                action: {
+                  label: "Close",
+                  onClick: () => console.log("Closed"),
+                },
+              });
+            }}
+            onError={(err) => {
+              toast("Error adding session key", {
+                description: JSON.stringify(err, null, 2),
+                action: {
+                  label: "Close",
+                  onClick: () => console.log("Closed"),
+                },
+              });
+            }}
+          >
+            Add Session Key
+          </TransactionButton>
         </div>
-        <Form {...form}>
-          <FormField
-            control={form.control}
-            name="opponent"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Opponent</FormLabel>
-                <FormControl>
-                  <Input placeholder="Opponent" {...field} />
-                </FormControl>
-                <FormDescription>
-                  This is your opponent's wallet address.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="minDmg"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Minimum Damage</FormLabel>
-                <FormControl>
-                  <Input placeholder="Minimum Damage" {...field} />
-                </FormControl>
-                <FormDescription>
-                  This is your opponent's minimum damage.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="maxDmg"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Maximum Damage</FormLabel>
-                <FormControl>
-                  <Input placeholder="Maximum Damage" {...field} />
-                </FormControl>
-                <FormDescription>
-                  This is your opponent's maximum damage.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button onClick={onSubmit}>Submit</Button>
-        </Form>
+        {account && (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+              <FormField
+                control={form.control}
+                name="opponent"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Opponent</FormLabel>
+                    <FormControl>
+                      <Input
+                        autoComplete="name"
+                        placeholder="Opponent"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      This is your opponent's wallet address.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="minDmg"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Minimum Damage</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Minimum Damage"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      This is your opponent's minimum damage.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="maxDmg"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Maximum Damage</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Maximum Damage"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      This is your opponent's maximum damage.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit">Submit</Button>
+            </form>
+          </Form>
+        )}
       </div>
     </main>
   );

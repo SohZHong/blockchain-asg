@@ -75,7 +75,6 @@ const useMultiBaasWithThirdweb = (): MultiBaasHook => {
       }),
     [mbBaseUrl, mbApiKey]
   );
-
   const contractsApi = useMemo(() => new ContractsApi(mbConfig), [mbConfig]);
   const eventsApi = useMemo(() => new EventsApi(mbConfig), [mbConfig]);
   const chainsApi = useMemo(() => new ChainsApi(mbConfig), [mbConfig]);
@@ -101,9 +100,7 @@ const useMultiBaasWithThirdweb = (): MultiBaasHook => {
       const payload: PostMethodArgs = {
         args,
         contractOverride: true,
-        ...(account ? { from: account.address } : {}),
       };
-
       const response = await contractsApi.callContractFunction(
         chain,
         matchAddressLabel,

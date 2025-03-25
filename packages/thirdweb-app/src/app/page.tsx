@@ -4,7 +4,6 @@ import ThirdWebConnectButton from "@/components/ThirdWebConnectButton";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import useMultiBaasWithThirdweb from "@/hooks/useMultiBaas";
 import {
   Form,
   FormControl,
@@ -17,23 +16,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import {
-  TransactionButton,
-  useActiveAccount,
-  useActiveWallet,
-} from "thirdweb/react";
-import {
-  getViemClientWallet,
-  getViemPublicClient,
-} from "@/adapters/viemAdapter";
-import { getSessionKeyOptions, managerContract } from "../../constants";
-import {
-  prepareContractCall,
-  sendAndConfirmTransaction,
-  sendTransaction,
-  waitForReceipt,
-} from "thirdweb";
+import { TransactionButton } from "thirdweb/react";
+import { prepareContractCall, sendAndConfirmTransaction } from "thirdweb";
 import { addSessionKey } from "thirdweb/extensions/erc4337";
+import { useThirdWeb } from "@/hooks/useThirdWeb";
 
 export default function Home() {
   const FormSchema = z
@@ -58,8 +44,7 @@ export default function Home() {
     });
 
   // const { attack, startBattle } = useMultiBaasWithThirdweb();
-  const account = useActiveAccount();
-
+  const { account, smartWallet, managerContract } = useThirdWeb();
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -68,6 +53,29 @@ export default function Home() {
       maxDmg: 0,
     },
   });
+
+  const addSessionKeyBackend = async (sessionKeyAddress: string) => {
+    const response = await fetch("/api/add-session-key", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ sessionKeyAddress }),
+    });
+
+    const data = await response.json();
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    toast("Added Session Key", {
+      description: JSON.stringify(data.receipt, null, 2),
+      action: {
+        label: "Close",
+        onClick: () => console.log("Closed"),
+      },
+    });
+  };
+
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     // const unsignedTx = await startBattle(
     //   data.opponent as `0x${string}`,
@@ -76,6 +84,8 @@ export default function Home() {
     //   data.minDmg,
     //   data.maxDmg
     // );
+
+    if (!managerContract) throw new Error("Cannot retrieve contract");
     const tx = prepareContractCall({
       contract: managerContract,
       method: "startBattle",
@@ -94,34 +104,46 @@ export default function Home() {
       },
     });
   };
+
   return (
     <main className="p-4 pb-10 min-h-[100vh] flex items-center justify-center container max-w-screen-lg mx-auto">
       <div className="py-20">
         <div className="flex justify-center mb-20">
           <ThirdWebConnectButton />
-          <TransactionButton
-            transaction={() => addSessionKey(getSessionKeyOptions(account))}
-            onTransactionConfirmed={(tx) => {
-              toast("Session Key Added", {
-                description: JSON.stringify(tx, null, 2),
-                action: {
-                  label: "Close",
-                  onClick: () => console.log("Closed"),
-                },
-              });
-            }}
-            onError={(err) => {
-              toast("Error adding session key", {
-                description: JSON.stringify(err, null, 2),
-                action: {
-                  label: "Close",
-                  onClick: () => console.log("Closed"),
-                },
-              });
-            }}
-          >
-            Add Session Key
-          </TransactionButton>
+          {account && (
+            <Button onClick={() => addSessionKeyBackend(account?.address)}>
+              Click
+            </Button>
+          )}
+          {/* {sessionKeyOptions ? (
+            <TransactionButton
+              transaction={() => addSessionKey(sessionKeyOptions)}
+              onTransactionConfirmed={(tx) => {
+                toast("Session Key Added", {
+                  description: JSON.stringify(tx, null, 2),
+                  action: {
+                    label: "Close",
+                    onClick: () => console.log("Closed"),
+                  },
+                });
+              }}
+              onError={(err) => {
+                toast("Error adding session key", {
+                  description: err.message,
+                  action: {
+                    label: "Close",
+                    onClick: () => console.log("Closed"),
+                  },
+                });
+              }}
+            >
+              Add Session Key
+            </TransactionButton>
+          ) : (
+            <p className="text-gray-500">
+              Waiting for session key configuration...
+            </p>
+          )} */}
         </div>
         {account && (
           <Form {...form}>

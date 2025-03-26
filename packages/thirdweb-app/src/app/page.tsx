@@ -16,7 +16,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { prepareContractCall, sendAndConfirmTransaction } from "thirdweb";
 import {
   addSessionKey,
   getAllActiveSigners,
@@ -66,27 +65,45 @@ export default function Home() {
     //   data.minDmg,
     //   data.maxDmg
     // );
-
-    if (!managerContract) throw new Error("Cannot retrieve contract");
-    const tx = prepareContractCall({
-      contract: managerContract,
-      method: "startBattle",
-      params: [data.opponent, 1n, 5n, BigInt(data.minDmg), BigInt(data.maxDmg)],
-    });
-    const transactionResult = await sendAndConfirmTransaction({
-      transaction: tx,
-      account: account!,
-    });
-
-    toast("Battle Started", {
-      description: JSON.stringify(transactionResult, (key, value) =>
-        typeof value === "bigint" ? value.toString() : value
-      ),
-      action: {
-        label: "Close",
-        onClick: () => console.log("Closed"),
-      },
-    });
+    // const tx = prepareContractCall({
+    //   contract: managerContract,
+    //   method: "startBattle",
+    //   params: [data.opponent, 1n, 5n, BigInt(data.minDmg), BigInt(data.maxDmg)],
+    // });
+    try {
+      const response = await fetch("/api/start-battle", {
+        method: "POST",
+        body: JSON.stringify({
+          address: account?.address as string,
+          opponent: data.opponent,
+          player1MinDmg: 1,
+          player1MaxDmg: 3,
+          player2MinDmg: data.minDmg,
+          player2MaxDmg: data.maxDmg,
+        }),
+      });
+      const res = await response.json();
+      if (res.success) {
+        toast("Battle Started", {
+          description: JSON.stringify(res, (key, value) =>
+            typeof value === "bigint" ? value.toString() : value
+          ),
+          action: {
+            label: "Close",
+            onClick: () => console.log("Closed"),
+          },
+        });
+      } else {
+        toast("Error Starting Battle", {
+          action: {
+            label: "Close",
+            onClick: () => console.log("Closed"),
+          },
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const getSigners = async () => {

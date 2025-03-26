@@ -9,10 +9,17 @@ import {
   getContract,
   ThirdwebClient,
 } from "thirdweb";
-import { celoAlfajoresTestnet, ChainOptions } from "thirdweb/chains";
+import { ChainOptions } from "thirdweb/chains";
 import { AddSessionKeyOptions } from "thirdweb/extensions/erc4337";
 import { useActiveAccount } from "thirdweb/react";
 import { Account, SmartWalletOptions } from "thirdweb/wallets";
+import {
+  appName,
+  appUrl,
+  chain,
+  managerAddress,
+  sponsorGas,
+} from "@/common/constants";
 
 interface AppMetadata {
   name: string;
@@ -34,16 +41,10 @@ export const useThirdWeb = (): ThirdWebHook => {
   const clientId = process.env.NEXT_PUBLIC_TEMPLATE_CLIENT_ID as string;
   const engineWallet = process.env
     .NEXT_PUBLIC_THIRDWEB_ENGINE_WALLET_ADDRESS as string;
-  const managerAddress = "0xe0dBc74bB3795f69b763629752c27DF2e58d6f58";
-
-  const appName = "Mystic Kaizer";
-  const appUrl = "https://example.com";
 
   const client = useMemo(() => createThirdwebClient({ clientId }), [clientId]);
 
-  const chain = celoAlfajoresTestnet;
   const account = useActiveAccount() || null;
-  const sponsorGas: boolean = true;
 
   const managerContract = useMemo(() => {
     if (!client) return null;

@@ -1,14 +1,16 @@
 "use client";
 
 import { matchManager } from "@/abis/MatchManager";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
+  BaseTransactionOptions,
   ContractOptions,
   createThirdwebClient,
   getContract,
   ThirdwebClient,
 } from "thirdweb";
 import { celoAlfajoresTestnet, ChainOptions } from "thirdweb/chains";
+import { AddSessionKeyOptions } from "thirdweb/extensions/erc4337";
 import { useActiveAccount } from "thirdweb/react";
 import { Account, SmartWalletOptions } from "thirdweb/wallets";
 
@@ -25,10 +27,13 @@ interface ThirdWebHook {
   smartWallet: Readonly<ContractOptions<any, `0x${string}`>> | null;
   accountAbstraction: SmartWalletOptions;
   appMetadata: AppMetadata;
+  sessionKeyOptions: BaseTransactionOptions<AddSessionKeyOptions> | null;
 }
 
 export const useThirdWeb = (): ThirdWebHook => {
   const clientId = process.env.NEXT_PUBLIC_TEMPLATE_CLIENT_ID as string;
+  const engineWallet = process.env
+    .NEXT_PUBLIC_THIRDWEB_ENGINE_WALLET_ADDRESS as string;
   const managerAddress = "0xe0dBc74bB3795f69b763629752c27DF2e58d6f58";
 
   const appName = "Mystic Kaizer";
@@ -73,6 +78,26 @@ export const useThirdWeb = (): ThirdWebHook => {
     };
   }, [appName, appUrl]);
 
+  const sessionKeyOptions: BaseTransactionOptions<AddSessionKeyOptions> | null =
+    useMemo(() => {
+      if (!smartWallet || !account || !engineWallet) return null;
+      console.log("Smart Wallet", smartWallet);
+      console.log("Account", account);
+      return {
+        contract: smartWallet,
+        account: account,
+        sessionKeyAddress: "0x42d0c62B46372491F1bb7C494c43A8469EEd5224",
+        permissions: {
+          approvedTargets: "*",
+          nativeTokenLimitPerTransaction: 0.1, // in ETH
+          permissionStartTimestamp: new Date(),
+          permissionEndTimestamp: new Date(
+            Date.now() + 1000 * 60 * 60 * 24 * 365
+          ), // 1 year
+        },
+      };
+    }, [smartWallet, account, engineWallet]);
+
   return {
     client,
     chain,
@@ -81,5 +106,6 @@ export const useThirdWeb = (): ThirdWebHook => {
     smartWallet,
     accountAbstraction,
     appMetadata,
+    sessionKeyOptions,
   };
 };

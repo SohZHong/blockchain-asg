@@ -16,10 +16,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { TransactionButton } from "thirdweb/react";
 import { prepareContractCall, sendAndConfirmTransaction } from "thirdweb";
-import { addSessionKey } from "thirdweb/extensions/erc4337";
+import {
+  addSessionKey,
+  getAllActiveSigners,
+} from "thirdweb/extensions/erc4337";
 import { useThirdWeb } from "@/hooks/useThirdWeb";
+import { TransactionButton } from "thirdweb/react";
 
 export default function Home() {
   const FormSchema = z
@@ -44,7 +47,8 @@ export default function Home() {
     });
 
   // const { attack, startBattle } = useMultiBaasWithThirdweb();
-  const { account, smartWallet, managerContract } = useThirdWeb();
+  const { account, smartWallet, managerContract, sessionKeyOptions } =
+    useThirdWeb();
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -53,28 +57,6 @@ export default function Home() {
       maxDmg: 0,
     },
   });
-
-  const addSessionKeyBackend = async (sessionKeyAddress: string) => {
-    const response = await fetch("/api/add-session-key", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ sessionKeyAddress }),
-    });
-
-    const data = await response.json();
-    if (data.error) {
-      throw new Error(data.error);
-    }
-    toast("Added Session Key", {
-      description: JSON.stringify(data.receipt, null, 2),
-      action: {
-        label: "Close",
-        onClick: () => console.log("Closed"),
-      },
-    });
-  };
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     // const unsignedTx = await startBattle(
@@ -105,16 +87,44 @@ export default function Home() {
     });
   };
 
+  const getSigners = async () => {
+    if (!smartWallet) return;
+    const res = await getAllActiveSigners({
+      contract: smartWallet,
+    });
+    console.log(res);
+  };
+
   return (
     <main className="p-4 pb-10 min-h-[100vh] flex items-center justify-center container max-w-screen-lg mx-auto">
       <div className="py-20">
         <div className="flex justify-center mb-20">
           <ThirdWebConnectButton />
-          {account && (
-            <Button onClick={() => addSessionKeyBackend(account?.address)}>
-              Click
-            </Button>
+          {smartWallet && account && (
+            <TransactionButton
+              transaction={() =>
+                addSessionKey({
+                  contract: smartWallet,
+                  account: account,
+                  sessionKeyAddress:
+                    "0x42d0c62B46372491F1bb7C494c43A8469EEd5224",
+                  permissions: {
+                    approvedTargets: "*",
+                    nativeTokenLimitPerTransaction: 0.1, // in ETH
+                    permissionStartTimestamp: new Date(),
+                    permissionEndTimestamp: new Date(
+                      Date.now() + 1000 * 60 * 60 * 24 * 365
+                    ), // 1 year
+                  },
+                })
+              }
+              onError={(error) => console.error(error)}
+              onTransactionConfirmed={(receipt) => console.log(receipt)}
+            >
+              Add Session Key
+            </TransactionButton>
           )}
+          {account && <Button onClick={() => getSigners()}>Signers</Button>}
           {/* {sessionKeyOptions ? (
             <TransactionButton
               transaction={() => addSessionKey(sessionKeyOptions)}

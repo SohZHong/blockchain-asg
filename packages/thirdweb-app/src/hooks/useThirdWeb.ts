@@ -1,7 +1,7 @@
 "use client";
 
 import { matchManager } from "@/abis/MatchManager";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   BaseTransactionOptions,
   ContractOptions,
@@ -81,12 +81,10 @@ export const useThirdWeb = (): ThirdWebHook => {
   const sessionKeyOptions: BaseTransactionOptions<AddSessionKeyOptions> | null =
     useMemo(() => {
       if (!smartWallet || !account || !engineWallet) return null;
-      console.log("Smart Wallet", smartWallet);
-      console.log("Account", account);
       return {
         contract: smartWallet,
         account: account,
-        sessionKeyAddress: "0x42d0c62B46372491F1bb7C494c43A8469EEd5224",
+        sessionKeyAddress: engineWallet,
         permissions: {
           approvedTargets: "*",
           nativeTokenLimitPerTransaction: 0.1, // in ETH

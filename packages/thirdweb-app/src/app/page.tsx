@@ -79,7 +79,9 @@ export default function Home() {
     });
 
     toast("Battle Started", {
-      description: JSON.stringify(transactionResult, null, 2),
+      description: JSON.stringify(transactionResult, (key, value) =>
+        typeof value === "bigint" ? value.toString() : value
+      ),
       action: {
         label: "Close",
         onClick: () => console.log("Closed"),
@@ -100,37 +102,15 @@ export default function Home() {
       <div className="py-20">
         <div className="flex justify-center mb-20">
           <ThirdWebConnectButton />
-          {smartWallet && account && (
-            <TransactionButton
-              transaction={() =>
-                addSessionKey({
-                  contract: smartWallet,
-                  account: account,
-                  sessionKeyAddress:
-                    "0x42d0c62B46372491F1bb7C494c43A8469EEd5224",
-                  permissions: {
-                    approvedTargets: "*",
-                    nativeTokenLimitPerTransaction: 0.1, // in ETH
-                    permissionStartTimestamp: new Date(),
-                    permissionEndTimestamp: new Date(
-                      Date.now() + 1000 * 60 * 60 * 24 * 365
-                    ), // 1 year
-                  },
-                })
-              }
-              onError={(error) => console.error(error)}
-              onTransactionConfirmed={(receipt) => console.log(receipt)}
-            >
-              Add Session Key
-            </TransactionButton>
-          )}
           {account && <Button onClick={() => getSigners()}>Signers</Button>}
-          {/* {sessionKeyOptions ? (
+          {sessionKeyOptions ? (
             <TransactionButton
               transaction={() => addSessionKey(sessionKeyOptions)}
               onTransactionConfirmed={(tx) => {
                 toast("Session Key Added", {
-                  description: JSON.stringify(tx, null, 2),
+                  description: JSON.stringify(tx, (key, value) =>
+                    typeof value === "bigint" ? value.toString() : value
+                  ),
                   action: {
                     label: "Close",
                     onClick: () => console.log("Closed"),
@@ -153,7 +133,7 @@ export default function Home() {
             <p className="text-gray-500">
               Waiting for session key configuration...
             </p>
-          )} */}
+          )}
         </div>
         {account && (
           <Form {...form}>

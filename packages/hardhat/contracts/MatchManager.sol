@@ -58,7 +58,7 @@ contract MatchManager {
     if (block.chainid == 31337) {
       // Hardhat local testnet
       return
-        uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty)));
+        uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao)));
     } else {
       // Actual Celo implementation
       return

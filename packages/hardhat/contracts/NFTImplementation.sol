@@ -27,7 +27,8 @@ contract NFTCollection is
   event NFTMinted(
     address indexed recipient,
     uint256 tokenId,
-    string metadataCID
+    string metadataCID,
+    uint256 nextMilestoneIndex
   );
   event MilestoneUpdated(address indexed participant, uint256 milestoneValue);
 

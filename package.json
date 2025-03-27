@@ -17,10 +17,10 @@
     "url": "git+https://github.com/celo-org/celo-composer.git"
   },
   "scripts": {
-    "react-app:dev": "yarn workspace @blockchain-asg/react-app dev",
-    "react-app:build": "yarn workspace @blockchain-asg/react-app build",
-    "react-app:start": "yarn workspace @blockchain-asg/react-app start",
-    "react-app:lint": "yarn workspace @blockchain-asg/react-app lint",
+    "thirdweb-app:dev": "yarn workspace @blockchain-asg/thirdweb-app dev",
+    "thirdweb-app:build": "yarn workspace @blockchain-asg/thirdweb-app build",
+    "thirdweb-app:start": "yarn workspace @blockchain-asg/thirdweb-app start",
+    "thirdweb-app:lint": "yarn workspace @blockchain-asg/thirdweb-app lint",
     "hardhat:postinstall": "yarn workspace @blockchain-asg/hardhat postinstall",
     "hardhat:compile": "yarn workspace @blockchain-asg/hardhat compile",
     "hardhat:tsc": "yarn workspace @blockchain-asg/hardhat tsc",

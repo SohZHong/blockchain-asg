@@ -27,7 +27,7 @@ export default function OrganiserPage() {
       }),
   });
 
-  const { account, smartWallet, organiserContract } = useThirdWeb();
+  const { account } = useThirdWeb();
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -40,13 +40,12 @@ export default function OrganiserPage() {
       const response = await fetch("/api/mint-organiser-pass", {
         method: "POST",
         body: JSON.stringify({
-          address: account?.address as string,
-          receiver: data.receiver,
+          to: data.receiver,
         }),
       });
       const res = await response.json();
       if (res.success) {
-        toast("Battle Started", {
+        toast("Minted Organiser Pass", {
           description: JSON.stringify(res, (key, value) =>
             typeof value === "bigint" ? value.toString() : value
           ),
@@ -56,7 +55,7 @@ export default function OrganiserPage() {
           },
         });
       } else {
-        toast("Error Starting Battle", {
+        toast("Error Minting Organiser Pass", {
           action: {
             label: "Close",
             onClick: () => console.log("Closed"),

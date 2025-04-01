@@ -10,6 +10,9 @@ const sponsorGas: boolean = true;
 const appName = "Mystic Kaizer";
 const appUrl = "https://example.com";
 
+// Owner address
+const ownerAddress = "0x42d0c62B46372491F1bb7C494c43A8469EEd5224";
+
 // Contract for match making
 const managerAddress = "0xe0dBc74bB3795f69b763629752c27DF2e58d6f58";
 // Contract for organiser management
@@ -22,6 +25,7 @@ export {
   sponsorGas,
   appName,
   appUrl,
+  ownerAddress,
   managerAddress,
   organiserAddress,
   eventFactoryAddress,

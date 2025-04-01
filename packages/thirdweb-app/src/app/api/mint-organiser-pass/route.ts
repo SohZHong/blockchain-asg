@@ -1,4 +1,4 @@
-import { chain, managerAddress } from "@/common/constants";
+import { chain, organiserAddress } from "@/common/constants";
 import { NextResponse } from "next/server";
 
 const {
@@ -8,14 +8,7 @@ const {
 } = process.env;
 
 export const POST = async (request: Request) => {
-  const {
-    address,
-    opponent,
-    player1MinDmg,
-    player1MaxDmg,
-    player2MinDmg,
-    player2MaxDmg,
-  } = await request.json();
+  const { to } = await request.json();
 
   if (
     !ENGINE_URL ||
@@ -27,15 +20,8 @@ export const POST = async (request: Request) => {
       { status: 500 }
     );
   const body = JSON.stringify({
-    functionName:
-      "function startBattle(address _opponent, uint256 _player1MinDmg, uint256 _player1MaxDmg, uint256 _player2MinDmg, uint256 _player2MaxDmg)",
-    args: [
-      opponent,
-      player1MinDmg,
-      player1MaxDmg,
-      player2MinDmg,
-      player2MaxDmg,
-    ],
+    functionName: "function mint(address to)",
+    args: [to],
     txOverrides: {
       gas: "530000",
       gasPrice: "50000000000",
@@ -46,29 +32,13 @@ export const POST = async (request: Request) => {
     abi: [
       {
         inputs: [
-          { internalType: "address", name: "_opponent", type: "address" },
           {
-            internalType: "uint256",
-            name: "_player1MinDmg",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "_player1MaxDmg",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "_player2MinDmg",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "_player2MaxDmg",
-            type: "uint256",
+            internalType: "address",
+            name: "to",
+            type: "address",
           },
         ],
-        name: "startBattle",
+        name: "mint",
         outputs: [],
         stateMutability: "nonpayable",
         type: "function",
@@ -76,15 +46,14 @@ export const POST = async (request: Request) => {
     ],
   });
   const response = await fetch(
-    `${ENGINE_URL}/contract/${chain.id}/${managerAddress}/write`,
+    `${ENGINE_URL}/contract/${chain.id}/${organiserAddress}/write`,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${THIRDWEB_SECRET_KEY}`,
         chain: chain.id.toString(),
-        contractAddress: managerAddress,
-        "x-account-address": address,
+        contractAddress: organiserAddress,
         "x-backend-wallet-address": NEXT_PUBLIC_THIRDWEB_ENGINE_WALLET_ADDRESS,
       },
       body,

@@ -46,8 +46,7 @@ export default function Home() {
     });
 
   // const { attack, startBattle } = useMultiBaasWithThirdweb();
-  const { account, smartWallet, managerContract, sessionKeyOptions } =
-    useThirdWeb();
+  const { account, smartWallet, sessionKeyOptions } = useThirdWeb();
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {

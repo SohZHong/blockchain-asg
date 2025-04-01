@@ -17,9 +17,13 @@ import {
   appName,
   appUrl,
   chain,
+  eventFactoryAddress,
   managerAddress,
+  organiserAddress,
   sponsorGas,
 } from "@/common/constants";
+import { organiserPass } from "@/abis/OrganiserPass";
+import { eventFactory } from "@/abis/EventFactory";
 
 interface AppMetadata {
   name: string;
@@ -31,6 +35,8 @@ interface ThirdWebHook {
   chain: ChainOptions;
   account: Account | null;
   managerContract: Readonly<ContractOptions<any, `0x${string}`>> | null;
+  organiserContract: Readonly<ContractOptions<any, `0x${string}`>> | null;
+  eventFactoryContract: Readonly<ContractOptions<any, `0x${string}`>> | null;
   smartWallet: Readonly<ContractOptions<any, `0x${string}`>> | null;
   accountAbstraction: SmartWalletOptions;
   appMetadata: AppMetadata;
@@ -55,6 +61,26 @@ export const useThirdWeb = (): ThirdWebHook => {
       abi: matchManager,
     });
   }, [managerAddress, chain, client, matchManager]);
+
+  const organiserContract = useMemo(() => {
+    if (!client) return null;
+    return getContract({
+      address: organiserAddress,
+      chain,
+      client,
+      abi: organiserPass,
+    });
+  }, [organiserAddress, chain, client, organiserPass]);
+
+  const eventFactoryContract = useMemo(() => {
+    if (!client) return null;
+    return getContract({
+      address: eventFactoryAddress,
+      chain,
+      client,
+      abi: eventFactory,
+    });
+  }, [eventFactoryAddress, chain, client, eventFactory]);
 
   const smartWallet = useMemo(() => {
     if (!client || !account?.address) return null;
@@ -102,6 +128,8 @@ export const useThirdWeb = (): ThirdWebHook => {
     chain,
     account,
     managerContract,
+    organiserContract,
+    eventFactoryContract,
     smartWallet,
     accountAbstraction,
     appMetadata,

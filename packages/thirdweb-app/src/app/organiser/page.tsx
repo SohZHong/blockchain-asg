@@ -16,8 +16,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useThirdWeb } from "@/hooks/useThirdWeb";
+import useMultiBaasWithThirdweb from "@/hooks/useMultiBaas";
+import { NFTDescription, NFTMedia, NFTProvider } from "thirdweb/react";
+import { useEffect, useState } from "react";
+import { Spinner } from "@/components/Spinner";
 
 export default function OrganiserPage() {
+  const [organiserPassId, setOrganiserPassId] = useState<bigint>();
+
   const FormSchema = z.object({
     receiver: z
       .string()
@@ -27,7 +33,9 @@ export default function OrganiserPage() {
       }),
   });
 
-  const { account } = useThirdWeb();
+  const { account, organiserContract } = useThirdWeb();
+  const { getOrganiserEvent } = useMultiBaasWithThirdweb();
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -66,6 +74,22 @@ export default function OrganiserPage() {
       console.error(error);
     }
   };
+  useEffect(() => {
+    const getOrganiserDetails = async () => {
+      if (!account) return;
+      const event = await getOrganiserEvent(account.address as `0x${string}`);
+      if (!event) return;
+
+      const tokenId = event.event.inputs.find(
+        (input) => input.name === "tokenId"
+      )?.value;
+
+      if (tokenId) {
+        setOrganiserPassId(BigInt(tokenId)); // Store tokenId in state if needed
+      }
+    };
+    getOrganiserDetails();
+  }, [account?.address]);
 
   return (
     <main className="p-4 pb-10 min-h-[100vh] flex items-center justify-center container max-w-screen-lg mx-auto">
@@ -96,6 +120,20 @@ export default function OrganiserPage() {
               <Button type="submit">Submit</Button>
             </form>
           </Form>
+        )}
+      </div>
+      <div>
+        {organiserContract && organiserPassId !== undefined && (
+          <NFTProvider contract={organiserContract} tokenId={organiserPassId}>
+            <NFTMedia
+              fallbackComponent={<span>Failed to load media</span>}
+              queryOptions={{ retry: 3, enabled: false }}
+              loadingComponent={<Spinner size={"medium"} />}
+            />
+            <NFTDescription
+              fallbackComponent={<span>Failed to load description</span>}
+            />
+          </NFTProvider>
         )}
       </div>
     </main>

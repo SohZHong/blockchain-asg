@@ -65,7 +65,6 @@ export default function EventCreationPage() {
       const startDateTimestamp = Math.floor(
         new Date(data.startDate).getTime() / 1000
       );
-      console.log(startDateTimestamp);
       const response = await fetch("/api/event/create", {
         method: "POST",
         body: JSON.stringify({
@@ -75,6 +74,7 @@ export default function EventCreationPage() {
           location: data.location,
           participantLimit: data.participantLimit,
           startDate: startDateTimestamp,
+          rewardCount: 2, // Placeholder
           baseUri: data.baseUri,
         }),
       });

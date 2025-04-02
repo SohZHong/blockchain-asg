@@ -47,7 +47,6 @@ export default function Home() {
       path: ["minDmg"], // This will attach the error to the minDmg field
     });
 
-  // const { attack, startBattle } = useMultiBaasWithThirdweb();
   const { account, smartWallet, sessionKeyOptions } = useThirdWeb();
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -59,18 +58,6 @@ export default function Home() {
   });
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
-    // const unsignedTx = await startBattle(
-    //   data.opponent as `0x${string}`,
-    //   1,
-    //   5,
-    //   data.minDmg,
-    //   data.maxDmg
-    // );
-    // const tx = prepareContractCall({
-    //   contract: managerContract,
-    //   method: "startBattle",
-    //   params: [data.opponent, 1n, 5n, BigInt(data.minDmg), BigInt(data.maxDmg)],
-    // });
     try {
       const response = await fetch("/api/start-battle", {
         method: "POST",

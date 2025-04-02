@@ -16,13 +16,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useThirdWeb } from "@/hooks/useThirdWeb";
-import useMultiBaasWithThirdweb from "@/hooks/useMultiBaas";
-import { NFTDescription, NFTMedia, NFTProvider } from "thirdweb/react";
+import useMultiBaasWithThirdweb, { NFTMetadata } from "@/hooks/useMultiBaas";
 import { useEffect, useState } from "react";
-import { Spinner } from "@/components/Spinner";
 
 export default function OrganiserPage() {
-  const [organiserPassId, setOrganiserPassId] = useState<bigint>();
+  const [organiserMetadata, setOrganiserMetadata] = useState<NFTMetadata>();
 
   const FormSchema = z.object({
     receiver: z
@@ -33,8 +31,9 @@ export default function OrganiserPage() {
       }),
   });
 
-  const { account, organiserContract } = useThirdWeb();
-  const { getOrganiserEvent } = useMultiBaasWithThirdweb();
+  const { account } = useThirdWeb();
+  const { getOrganiserEvent, getOrganiserMetadata } =
+    useMultiBaasWithThirdweb();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -85,7 +84,11 @@ export default function OrganiserPage() {
       )?.value;
 
       if (tokenId) {
-        setOrganiserPassId(BigInt(tokenId)); // Store tokenId in state if needed
+        const metadata = await getOrganiserMetadata(tokenId);
+
+        if (metadata) {
+          setOrganiserMetadata(metadata);
+        }
       }
     };
     getOrganiserDetails();
@@ -123,18 +126,7 @@ export default function OrganiserPage() {
         )}
       </div>
       <div>
-        {organiserContract && organiserPassId !== undefined && (
-          <NFTProvider contract={organiserContract} tokenId={organiserPassId}>
-            <NFTMedia
-              fallbackComponent={<span>Failed to load media</span>}
-              queryOptions={{ retry: 3, enabled: false }}
-              loadingComponent={<Spinner size={"medium"} />}
-            />
-            <NFTDescription
-              fallbackComponent={<span>Failed to load description</span>}
-            />
-          </NFTProvider>
-        )}
+        {organiserMetadata && JSON.stringify(organiserMetadata, null, 2)}
       </div>
     </main>
   );

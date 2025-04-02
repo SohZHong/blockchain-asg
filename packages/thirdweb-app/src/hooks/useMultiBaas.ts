@@ -36,6 +36,17 @@ interface Battle {
   active: boolean;
 }
 
+interface NFTAttributes {
+  trait_type: string;
+  value: string;
+}
+export interface NFTMetadata {
+  name: string;
+  description: string;
+  image: string;
+  attributes: Array<NFTAttributes>;
+}
+
 interface MultiBaasHook {
   getChainStatus: () => Promise<ChainStatus | null>;
   getBattleCounter: () => Promise<number | null>;
@@ -48,6 +59,7 @@ interface MultiBaasHook {
     player2MaxDmg: number
   ) => Promise<SendTransactionParameters>;
   getHp: (battleId: number) => Promise<PlayerStatus | null>;
+  getOrganiserMetadata: (tokenId: number) => Promise<NFTMetadata | null>;
   getBattle: (battleId: number) => Promise<Battle | null>;
   getAttackEvents: () => Promise<Array<Event> | null>;
   getBattleStartedEvents: () => Promise<Array<Event> | null>;
@@ -209,6 +221,44 @@ const useMultiBaasWithThirdweb = (): MultiBaasHook => {
     [callContractFunction, matchAddressLabel, matchContractLabel]
   );
 
+  const getOrganiserMetadata = useCallback(
+    async (tokenId: number): Promise<NFTMetadata | null> => {
+      try {
+        // Get the tokenURI from the contract
+        const tokenURI = await callContractFunction(
+          "tokenURI",
+          organiserAddressLabel,
+          organiserContractLabel,
+          [tokenId]
+        );
+
+        if (!tokenURI || typeof tokenURI !== "string") {
+          console.error("Invalid tokenURI:", tokenURI);
+          return null;
+        }
+
+        // Convert IPFS URI to HTTP Gateway URL
+        const metadataUrl = tokenURI.startsWith("ipfs://")
+          ? tokenURI.replace("ipfs://", "https://ipfs.io/ipfs/")
+          : tokenURI;
+
+        // Fetch metadata from IPFS
+        const response = await fetch(metadataUrl);
+        if (!response.ok) {
+          console.error("Failed to fetch metadata:", response.statusText);
+          return null;
+        }
+
+        const metadata: NFTMetadata = await response.json();
+        return metadata;
+      } catch (error) {
+        console.error("Error fetching organiser metadata:", error);
+        return null;
+      }
+    },
+    [callContractFunction, organiserAddressLabel, organiserContractLabel]
+  );
+
   const getAttackEvents =
     useCallback(async (): Promise<Array<Event> | null> => {
       try {
@@ -331,6 +381,7 @@ const useMultiBaasWithThirdweb = (): MultiBaasHook => {
     attack,
     startBattle,
     getHp,
+    getOrganiserMetadata,
     getBattle,
     getAttackEvents,
     getBattleStartedEvents,

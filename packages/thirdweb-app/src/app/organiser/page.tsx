@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { useThirdWeb } from "@/hooks/useThirdWeb";
 import useMultiBaasWithThirdweb, { NFTMetadata } from "@/hooks/useMultiBaas";
 import { useEffect, useState } from "react";
+import ThirdWebConnectButton from "@/components/ThirdWebConnectButton";
 
 export default function OrganiserPage() {
   const [organiserMetadata, setOrganiserMetadata] = useState<NFTMetadata>();
@@ -97,6 +98,7 @@ export default function OrganiserPage() {
   return (
     <main className="p-4 pb-10 min-h-[100vh] flex items-center justify-center container max-w-screen-lg mx-auto">
       <div className="py-20">
+        <ThirdWebConnectButton />
         {account && (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>

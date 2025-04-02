@@ -23,6 +23,7 @@ import {
 import { useThirdWeb } from "@/hooks/useThirdWeb";
 import { TransactionButton } from "thirdweb/react";
 import Link from "next/link";
+import { Spinner } from "@/components/Spinner";
 
 export default function Home() {
   const FormSchema = z
@@ -115,9 +116,10 @@ export default function Home() {
   };
 
   return (
-    <main className="p-4 pb-10 min-h-[100vh] flex flex-col items-center justify-center container max-w-screen-lg mx-auto">
-      <div className="py-20">
-        <div className="flex justify-center mb-20">
+    <main className="p-6 min-h-[100vh] container max-w-screen-lg mx-auto">
+      <div className="w-full">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-semibold">Home</h1>
           <ThirdWebConnectButton />
           {account && <Button onClick={() => getSigners()}>Signers</Button>}
           {sessionKeyOptions ? (
@@ -148,6 +150,7 @@ export default function Home() {
             </TransactionButton>
           ) : (
             <p className="text-gray-500">
+              <Spinner />
               Waiting for session key configuration...
             </p>
           )}
@@ -220,8 +223,10 @@ export default function Home() {
           </Form>
         )}
       </div>
-      <nav>
-        <Link href={"organiser"}>Go to Organiser Page</Link>
+      <nav className="flex flex-col items-center justify-center">
+        <Link href={"/organiser"}>Organiser Page</Link>
+        <Link href={"/event/create"}>Event Creation Page</Link>
+        <Link href={"/event"}>Event Listings Page</Link>
       </nav>
     </main>
   );

@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useThirdWeb } from "@/hooks/useThirdWeb";
 import ThirdWebConnectButton from "@/components/ThirdWebConnectButton";
+import Link from "next/link";
 
 export default function EventCreationPage() {
   // Form validation logic
@@ -103,9 +104,13 @@ export default function EventCreationPage() {
   };
 
   return (
-    <main className="p-4 pb-10 min-h-[100vh] flex items-center justify-center container max-w-screen-lg mx-auto">
-      <div className="py-20">
-        <ThirdWebConnectButton />
+    <main className="p-6 min-h-[100vh] container max-w-screen-lg mx-auto">
+      <div className="w-full">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-semibold">Event Creation</h1>
+          <ThirdWebConnectButton />
+        </div>
+
         {account && (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -211,6 +216,12 @@ export default function EventCreationPage() {
             </form>
           </Form>
         )}
+
+        <nav className="flex flex-col items-center justify-center">
+          <Link href={"/"}>Home Page</Link>
+          <Link href={"/organiser"}>Organiser Page</Link>
+          <Link href={"/event"}>Event Listings Page</Link>
+        </nav>
       </div>
     </main>
   );

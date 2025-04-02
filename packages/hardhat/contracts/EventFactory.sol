@@ -39,6 +39,7 @@ contract EventFactory is Initializable, Ownable2StepUpgradeable {
   }
 
   function setImplementation(address _implementation) external onlyOwner {
+    implementation = _implementation;
     bytes32 slot = getImplementationSlot();
 
     assembly {
@@ -49,6 +50,13 @@ contract EventFactory is Initializable, Ownable2StepUpgradeable {
   // Pick ERC-1967 Storage Slots at random to prevent collision
   function getImplementationSlot() internal pure returns (bytes32) {
     return bytes32(uint256(keccak256('eip1967.proxy.implementation')) - 1);
+  }
+
+  function getStoredImplementation() external view returns (address impl) {
+    bytes32 slot = getImplementationSlot();
+    assembly {
+      impl := sload(slot)
+    }
   }
 
   function createEvent(

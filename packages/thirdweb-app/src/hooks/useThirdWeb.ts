@@ -19,6 +19,7 @@ import {
   chain,
   managerAddress,
   sponsorGas,
+  nftAddress,
 } from "@/common/constants";
 
 interface AppMetadata {
@@ -31,6 +32,7 @@ interface ThirdWebHook {
   chain: ChainOptions;
   account: Account | null;
   managerContract: Readonly<ContractOptions<any, `0x${string}`>> | null;
+  nftContract: Readonly<ContractOptions<any, `0x${string}`>> | null;
   smartWallet: Readonly<ContractOptions<any, `0x${string}`>> | null;
   accountAbstraction: SmartWalletOptions;
   appMetadata: AppMetadata;
@@ -55,6 +57,14 @@ export const useThirdWeb = (): ThirdWebHook => {
       abi: matchManager,
     });
   }, [managerAddress, chain, client, matchManager]);
+
+  const nftContract = useMemo(() => {
+    return getContract({
+      address: nftAddress,
+      chain,
+      client,
+    });
+  }, [nftAddress, chain, client]);
 
   const smartWallet = useMemo(() => {
     if (!client || !account?.address) return null;
@@ -101,6 +111,7 @@ export const useThirdWeb = (): ThirdWebHook => {
     client,
     chain,
     account,
+    nftContract,
     managerContract,
     smartWallet,
     accountAbstraction,

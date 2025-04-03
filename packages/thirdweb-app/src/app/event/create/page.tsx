@@ -20,7 +20,7 @@ import { useThirdWeb } from "@/hooks/useThirdWeb";
 import ThirdWebConnectButton from "@/components/ThirdWebConnectButton";
 import Link from "next/link";
 import { useState } from "react";
-import { generateCardAttributes, getRandomRarity } from "@/lib/rarityUtils";
+import { generateCardAttributes } from "@/lib/rarityUtils";
 
 const MAX_FILE_SIZE = 1000000;
 const ACCEPTED_IMAGE_TYPES: Accept = {

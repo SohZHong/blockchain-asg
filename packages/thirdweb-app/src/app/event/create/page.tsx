@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { useThirdWeb } from "@/hooks/useThirdWeb";
 import ThirdWebConnectButton from "@/components/ThirdWebConnectButton";
 import Link from "next/link";
+import { useState } from "react";
 
 export default function EventCreationPage() {
   // Form validation logic
@@ -46,9 +47,15 @@ export default function EventCreationPage() {
       .refine((val) => /^ipfs:\/\/.+/.test(val) || /^https?:\/\/.+/.test(val), {
         message: "baseUri must be a valid URL or an IPFS link (ipfs://)",
       }),
+    images: z
+      .array(z.instanceof(File))
+      .nonempty("At least one image is required"), // Array for multiple images
   });
 
   const { account } = useThirdWeb();
+  const [imagesPreview, setImagesPreview] = useState<string[]>([]); // Preview array
+  const [imagesFiles, setImagesFiles] = useState<File[]>([]); // File array
+  const [ipfsImageUris, setIpfsImageUris] = useState<string[]>([]); // Store CIDs of images
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -59,45 +66,109 @@ export default function EventCreationPage() {
       participantLimit: 0,
       startDate: new Date().toISOString().split("T")[0], // Format to "YYYY-MM-DD"
       baseUri: "",
+      images: [],
     },
   });
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      setImagesFiles(Array.from(files)); // Update the file array
+      const previews = Array.from(files).map((file) =>
+        URL.createObjectURL(file)
+      ); // Preview images
+      setImagesPreview(previews);
+    }
+  };
+
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     try {
-      const startDateTimestamp = Math.floor(
-        new Date(data.startDate).getTime() / 1000
-      );
-      const response = await fetch("/api/event/create", {
-        method: "POST",
-        body: JSON.stringify({
-          address: account?.address as string,
-          name: data.name,
-          description: data.name,
-          location: data.location,
-          participantLimit: data.participantLimit,
-          startDate: startDateTimestamp,
-          rewardCount: 2, // Placeholder
-          baseUri: data.baseUri,
-        }),
-      });
-      const res = await response.json();
-      if (res.success) {
-        toast("Created Event", {
-          description: JSON.stringify(res, (key, value) =>
-            typeof value === "bigint" ? value.toString() : value
-          ),
-          action: {
-            label: "Close",
-            onClick: () => console.log("Closed"),
-          },
+      toast("Uploading images to IPFS...");
+
+      // Upload images to Pinata
+      const imageUris: string[] = [];
+      for (const imageFile of imagesFiles) {
+        const formData = new FormData();
+        formData.append("files", imageFile);
+
+        const response = await fetch("/api/pinata/upload", {
+          method: "POST",
+          body: formData,
+          headers: { "Content-Type": "multipart/form-data" },
         });
-      } else {
-        toast("Error Creating Event", {
-          action: {
-            label: "Close",
-            onClick: () => console.log("Closed"),
-          },
-        });
+        const res = await response.json();
+        console.log(res);
+        imageUris.push(res.data.ipfsHash);
       }
+      setIpfsImageUris(imageUris);
+
+      // Generate metadata for each image
+      const metadataList = imageUris.map((uri, index) => {
+        return {
+          name: `${data.name} - Image ${index + 1}`,
+          description: `Card Created for Event ${data.name}`,
+          image: uri,
+          attributes: [
+            { trait_type: "Rarity", value: "Common" },
+            { trait_type: "Health", value: "100" },
+            { trait_type: "Minimum Attack", value: "1" },
+            { trait_type: "Maximum Attack", value: "4" },
+          ],
+        };
+      });
+
+      // Upload metadata to Pinata
+      const metadataFormData = new FormData();
+      for (const metadata of metadataList) {
+        const metadataJson = new Blob([JSON.stringify(metadata)], {
+          type: "application/json",
+        });
+        metadataFormData.append("files", metadataJson);
+      }
+      const metadataUploadResponse = await fetch("/api/pinata/upload", {
+        method: "POST",
+        body: metadataFormData,
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const metadataRes = await metadataUploadResponse.json();
+      console.log(metadataRes);
+
+      // const startDateTimestamp = Math.floor(
+      //   new Date(data.startDate).getTime() / 1000
+      // );
+      // const response = await fetch("/api/event/create", {
+      //   method: "POST",
+      //   body: JSON.stringify({
+      //     address: account?.address as string,
+      //     name: data.name,
+      //     description: data.name,
+      //     location: data.location,
+      //     participantLimit: data.participantLimit,
+      //     startDate: startDateTimestamp,
+      //     rewardCount: imagesFiles.length,
+      //     baseUri: metadataRes.data.ipfsHash,
+      //   }),
+      // });
+
+      // const res = await response.json();
+      // if (res.success) {
+      //   toast("Created Event", {
+      //     description: JSON.stringify(res, (key, value) =>
+      //       typeof value === "bigint" ? value.toString() : value
+      //     ),
+      //     action: {
+      //       label: "Close",
+      //       onClick: () => console.log("Closed"),
+      //     },
+      //   });
+      // } else {
+      //   toast("Error Creating Event", {
+      //     action: {
+      //       label: "Close",
+      //       onClick: () => console.log("Closed"),
+      //     },
+      //   });
+      // }
     } catch (error) {
       console.error(error);
     }
@@ -212,6 +283,26 @@ export default function EventCreationPage() {
                   </FormItem>
                 )}
               />
+              {/* Multiple File Upload */}
+              <div>
+                <FormLabel>Upload Event Images</FormLabel>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileChange}
+                />
+                <div className="grid grid-cols-3 gap-4 mt-4">
+                  {imagesPreview.map((preview, index) => (
+                    <img
+                      key={index}
+                      src={preview}
+                      alt={`Preview ${index + 1}`}
+                      className="h-32 w-auto rounded-lg"
+                    />
+                  ))}
+                </div>
+              </div>
               <Button type="submit">Submit</Button>
             </form>
           </Form>

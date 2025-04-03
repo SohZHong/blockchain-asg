@@ -8,6 +8,8 @@ import { chain } from "@/common/constants";
 import { useThirdWeb } from "@/hooks/useThirdWeb";
 import { useNFTContext } from "@/contexts/NFTContext";
 import Image from "next/image";
+import ThirdWebConnectButton from "@/components/ThirdWebConnectButton";
+import Link from "next/link";
 
 const NFT_CONTRACT_ADDRESS = "0x360E849E2b04C558067bC17Cc24bC575076eAE9F";
 
@@ -20,10 +22,11 @@ export default function UserNFTs() {
   useEffect(() => {
     const fetchNFTs = async () => {
       if (!nftContract) return;
+      if (!account) return;
       try {
         const ownedNFTs = await getOwnedNFTs({
           contract: nftContract,
-          owner: "0x39cfc58c6F69597B5c1E0E01aa095A466114d4fF",
+          owner: account.address,
         });
 
         // Convert IPFS URI
@@ -54,9 +57,13 @@ export default function UserNFTs() {
     return <p className="text-white text-center">Loading Battle Cards...</p>;
 
   return (
-    <div className="min-h-screen flex items-center flex-col justify-center bg-gradient-to-br from-gray-900 to-gray-800 p-8">
-      <h1 className=" text-4xl font-bold text-white mb-20 text-center">
-        {selectedNFT ? "Are you ready to fight?" : "Your Battle Cards"}
+    <div className="min-h-screen flex items-center flex-col justify-center">
+      <h1 className=" text-4xl font-bold text-black mb-20 text-center">
+        {selectedNFT
+          ? "Are you ready to fight?"
+          : nfts.length === 0
+          ? ""
+          : "Your Battle Cards"}
       </h1>
 
       {selectedNFT ? (
@@ -159,6 +166,24 @@ export default function UserNFTs() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {nfts.length === 0 && (
+        <div className="text-center max-w-lg">
+          <h1 className="text-4xl font-bold text-black mb-4">
+            No Battle Cards Found
+          </h1>
+          <p className="text-gray-600 text-lg mb-8">
+            You need Battle Cards to participate in battles. Head to the events
+            page to earn your first cards!
+          </p>
+          <Link
+            href="/event"
+            className="inline-block bg-blue-600 text-white py-3 px-8 rounded-lg text-lg font-semibold shadow-lg hover:bg-blue-700 transition-all"
+          >
+            Go to Events
+          </Link>
         </div>
       )}
 

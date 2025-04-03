@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { Accept, useDropzone } from "react-dropzone";
 import { z } from "zod";
 import {
   Form,
@@ -19,6 +20,14 @@ import { useThirdWeb } from "@/hooks/useThirdWeb";
 import ThirdWebConnectButton from "@/components/ThirdWebConnectButton";
 import Link from "next/link";
 import { useState } from "react";
+import { generateCardAttributes, getRandomRarity } from "@/lib/rarityUtils";
+
+const MAX_FILE_SIZE = 1000000;
+const ACCEPTED_IMAGE_TYPES: Accept = {
+  "image/png": [".png"],
+  "image/jpeg": [".jpeg"],
+  "image/jpg": [".jpg"],
+};
 
 export default function EventCreationPage() {
   // Form validation logic
@@ -48,8 +57,12 @@ export default function EventCreationPage() {
         message: "baseUri must be a valid URL or an IPFS link (ipfs://)",
       }),
     images: z
-      .array(z.instanceof(File))
-      .nonempty("At least one image is required"), // Array for multiple images
+      .array(
+        z.object({
+          file: z.instanceof(File),
+        })
+      )
+      .nonempty("At least one image is required"),
   });
 
   const { account } = useThirdWeb();
@@ -66,20 +79,27 @@ export default function EventCreationPage() {
       participantLimit: 0,
       startDate: new Date().toISOString().split("T")[0], // Format to "YYYY-MM-DD"
       baseUri: "",
-      images: [],
     },
   });
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      setImagesFiles(Array.from(files)); // Update the file array
-      const previews = Array.from(files).map((file) =>
-        URL.createObjectURL(file)
-      ); // Preview images
-      setImagesPreview(previews);
-    }
+  const onDrop = (acceptedFiles: File[]) => {
+    const currentImages = form.getValues("images") || [];
+    const newImages = acceptedFiles.map((file) => ({ file }));
+    form.setValue("images", [...currentImages, ...newImages], {
+      shouldValidate: true,
+    });
+
+    // Generate previews
+    const previewUrls = acceptedFiles.map((file) => URL.createObjectURL(file));
+    setImagesPreview((prev) => [...prev, ...previewUrls]);
   };
+
+  const { getRootProps, getInputProps } = useDropzone({
+    accept: ACCEPTED_IMAGE_TYPES,
+    maxSize: MAX_FILE_SIZE,
+    multiple: true,
+    onDrop,
+  });
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     try {
@@ -87,88 +107,93 @@ export default function EventCreationPage() {
 
       // Upload images to Pinata
       const imageUris: string[] = [];
-      for (const imageFile of imagesFiles) {
+
+      for (const imageObj of data.images) {
         const formData = new FormData();
-        formData.append("files", imageFile);
+        formData.append("files", imageObj.file);
 
         const response = await fetch("/api/pinata/upload", {
           method: "POST",
           body: formData,
-          headers: { "Content-Type": "multipart/form-data" },
         });
         const res = await response.json();
-        console.log(res);
-        imageUris.push(res.data.ipfsHash);
+        toast(`Uploaded ${res.Name}`);
+        imageUris.push(res.IpfsHash);
       }
-      setIpfsImageUris(imageUris);
-
       // Generate metadata for each image
       const metadataList = imageUris.map((uri, index) => {
+        const { rarity, health, minAttack, maxAttack } =
+          generateCardAttributes();
         return {
           name: `${data.name} - Image ${index + 1}`,
           description: `Card Created for Event ${data.name}`,
-          image: uri,
+          image: `ipfs://${uri}`,
           attributes: [
-            { trait_type: "Rarity", value: "Common" },
-            { trait_type: "Health", value: "100" },
-            { trait_type: "Minimum Attack", value: "1" },
-            { trait_type: "Maximum Attack", value: "4" },
+            { trait_type: "Rarity", value: rarity },
+            { trait_type: "Health", value: health },
+            { trait_type: "Minimum Attack", value: minAttack },
+            { trait_type: "Maximum Attack", value: maxAttack },
           ],
         };
       });
-
-      // Upload metadata to Pinata
+      // Generate metadata json files
       const metadataFormData = new FormData();
-      for (const metadata of metadataList) {
+      metadataList.forEach((metadata, index) => {
         const metadataJson = new Blob([JSON.stringify(metadata)], {
           type: "application/json",
         });
-        metadataFormData.append("files", metadataJson);
-      }
+
+        metadataFormData.append(`files`, metadataJson, `${index}.json`); // Assign unique names
+      });
+
+      // Upload metadata files to Pinata
       const metadataUploadResponse = await fetch("/api/pinata/upload", {
         method: "POST",
         body: metadataFormData,
-        headers: { "Content-Type": "multipart/form-data" },
       });
       const metadataRes = await metadataUploadResponse.json();
-      console.log(metadataRes);
+      const baseUri = `ipfs://${metadataRes.IpfsHash}/`;
 
-      // const startDateTimestamp = Math.floor(
-      //   new Date(data.startDate).getTime() / 1000
-      // );
-      // const response = await fetch("/api/event/create", {
-      //   method: "POST",
-      //   body: JSON.stringify({
-      //     address: account?.address as string,
-      //     name: data.name,
-      //     description: data.name,
-      //     location: data.location,
-      //     participantLimit: data.participantLimit,
-      //     startDate: startDateTimestamp,
-      //     rewardCount: imagesFiles.length,
-      //     baseUri: metadataRes.data.ipfsHash,
-      //   }),
-      // });
+      // Automatically update the baseUri field
+      form.setValue("baseUri", baseUri);
 
-      // const res = await response.json();
-      // if (res.success) {
-      //   toast("Created Event", {
-      //     description: JSON.stringify(res, (key, value) =>
-      //       typeof value === "bigint" ? value.toString() : value
-      //     ),
-      //     action: {
-      //       label: "Close",
-      //       onClick: () => console.log("Closed"),
-      //     },
-      //   });
-      // } else {
-      //   toast("Error Creating Event", {
-      //     action: {
-      //       label: "Close",
-      //       onClick: () => console.log("Closed"),
-      //     },
-      //   });
-      // }
+      // Prepare parameters for event creation through contract
+      const startDateTimestamp = Math.floor(
+        new Date(data.startDate).getTime() / 1000
+      );
+      const response = await fetch("/api/event/create", {
+        method: "POST",
+        body: JSON.stringify({
+          address: account?.address as string,
+          name: data.name,
+          description: data.name,
+          location: data.location,
+          participantLimit: data.participantLimit,
+          startDate: startDateTimestamp,
+          rewardCount: imagesFiles.length,
+          baseUri,
+        }),
+      });
+
+      const res = await response.json();
+      if (res.success) {
+        toast("Created Event", {
+          description: JSON.stringify(res, (key, value) =>
+            typeof value === "bigint" ? value.toString() : value
+          ),
+          action: {
+            label: "Close",
+            onClick: () => console.log("Closed"),
+          },
+        });
+      } else {
+        toast("Error Creating Event", {
+          action: {
+            label: "Close",
+            onClick: () => console.log("Closed"),
+          },
+        });
+      }
     } catch (error) {
       console.error(error);
     }
@@ -274,7 +299,7 @@ export default function EventCreationPage() {
                   <FormItem>
                     <FormLabel>Event Reward's Base URI</FormLabel>
                     <FormControl>
-                      <Input placeholder="Base URI" {...field} />
+                      <Input disabled placeholder="Base URI" {...field} />
                     </FormControl>
                     <FormDescription>
                       Base URI link for the Event's Rewards
@@ -284,25 +309,36 @@ export default function EventCreationPage() {
                 )}
               />
               {/* Multiple File Upload */}
-              <div>
-                <FormLabel>Upload Event Images</FormLabel>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleFileChange}
-                />
-                <div className="grid grid-cols-3 gap-4 mt-4">
-                  {imagesPreview.map((preview, index) => (
-                    <img
-                      key={index}
-                      src={preview}
-                      alt={`Preview ${index + 1}`}
-                      className="h-32 w-auto rounded-lg"
-                    />
-                  ))}
-                </div>
-              </div>
+              <FormField
+                control={form.control}
+                name="images"
+                render={({ field: { value, onChange, ...fieldProps } }) => (
+                  <FormItem>
+                    <FormLabel>Upload Event Images</FormLabel>
+                    <FormControl>
+                      {/* Dropzone UI */}
+                      <div
+                        {...getRootProps()}
+                        className="border-2 border-dashed p-4 text-center cursor-pointer"
+                      >
+                        <Input {...getInputProps()} />
+                        <p>Drag & drop images here, or click to select files</p>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                    <div className="grid grid-cols-3 gap-4 mt-4">
+                      {imagesPreview.map((preview, index) => (
+                        <img
+                          key={index}
+                          src={preview}
+                          alt={`Preview ${index + 1}`}
+                          className="h-32 w-auto rounded-lg"
+                        />
+                      ))}
+                    </div>
+                  </FormItem>
+                )}
+              />
               <Button type="submit">Submit</Button>
             </form>
           </Form>

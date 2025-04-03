@@ -1,3 +1,4 @@
 {
-  "OrganiserModule#OrganizerToken": "0xfb8672FDF496B66FB81b43B1b1cF1938CA7fb71e"
+  "EventModule#EventFactory": "0x26cdc1B349e50A8793Cbd1C5749334Bb39CccD62",
+  "EventModule#EventImplementation": "0x1C99fB5Ac20414C878A12709d5AdCA51ea628b44"
 }

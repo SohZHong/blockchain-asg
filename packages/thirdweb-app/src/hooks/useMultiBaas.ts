@@ -11,7 +11,6 @@ import {
 } from "@curvegrid/multibaas-sdk";
 import { useMemo, useCallback } from "react";
 import { useActiveAccount } from "thirdweb/react";
-import { SendTransactionParameters } from "viem";
 
 interface ChainStatus {
   chainID: number;
@@ -36,22 +35,31 @@ interface Battle {
   active: boolean;
 }
 
+interface NFTAttributes {
+  trait_type: string;
+  value: string;
+}
+export interface NFTMetadata {
+  name: string;
+  description: string;
+  image: string;
+  attributes: Array<NFTAttributes>;
+}
+
 interface MultiBaasHook {
   getChainStatus: () => Promise<ChainStatus | null>;
   getBattleCounter: () => Promise<number | null>;
-  attack: (battleId: number) => Promise<SendTransactionParameters>;
-  startBattle: (
-    opponent: `0x${string}`,
-    player1MinDmg: number,
-    player1MaxDmg: number,
-    player2MinDmg: number,
-    player2MaxDmg: number
-  ) => Promise<SendTransactionParameters>;
   getHp: (battleId: number) => Promise<PlayerStatus | null>;
+  getOrganiserMetadata: (tokenId: number) => Promise<NFTMetadata | null>;
   getBattle: (battleId: number) => Promise<Battle | null>;
   getAttackEvents: () => Promise<Array<Event> | null>;
   getBattleStartedEvents: () => Promise<Array<Event> | null>;
   getBattleEndedEvents: () => Promise<Array<Event> | null>;
+  getOrganiserEvent: (targetAddress: `0x${string}`) => Promise<Event | null>;
+  getOrganisedEvents: (
+    pageNum: number,
+    limit: number
+  ) => Promise<Array<Event> | null>;
 }
 
 const useMultiBaasWithThirdweb = (): MultiBaasHook => {
@@ -61,6 +69,14 @@ const useMultiBaasWithThirdweb = (): MultiBaasHook => {
     process.env.NEXT_PUBLIC_MULTIBAAS_MATCH_CONTRACT_LABEL || "";
   const matchAddressLabel =
     process.env.NEXT_PUBLIC_MULTIBAAS_MATCH_ADDRESS_LABEL || "";
+  const organiserContractLabel =
+    process.env.NEXT_PUBLIC_MULTIBAAS_ORGANISER_CONTRACT_LABEL || "";
+  const organiserAddressLabel =
+    process.env.NEXT_PUBLIC_MULTIBAAS_ORGANISER_ADDRESS_LABEL || "";
+  const eventFactoryContractLabel =
+    process.env.NEXT_PUBLIC_MULTIBAAS_EVENT_FACTORY_CONTRACT_LABEL || "";
+  const eventFactoryAddressLabel =
+    process.env.NEXT_PUBLIC_MULTIBAAS_EVENT_FACTORY_ADDRESS_LABEL || "";
 
   const chain = "ethereum";
 
@@ -93,6 +109,8 @@ const useMultiBaasWithThirdweb = (): MultiBaasHook => {
   const callContractFunction = useCallback(
     async (
       methodName: string,
+      addressLabel: string,
+      contractLabel: string,
       args: PostMethodArgs["args"] = []
     ): Promise<
       MethodCallResponse["output"] | TransactionToSignResponse["tx"]
@@ -103,8 +121,8 @@ const useMultiBaasWithThirdweb = (): MultiBaasHook => {
       };
       const response = await contractsApi.callContractFunction(
         chain,
-        matchAddressLabel,
-        matchContractLabel,
+        addressLabel,
+        contractLabel,
         methodName,
         payload
       );
@@ -119,69 +137,95 @@ const useMultiBaasWithThirdweb = (): MultiBaasHook => {
         );
       }
     },
-    [contractsApi, chain, matchAddressLabel, matchContractLabel, account]
-  );
-
-  const attack = useCallback(
-    async (battleId: number): Promise<SendTransactionParameters> => {
-      return await callContractFunction("attack", [battleId]);
-    },
-    [callContractFunction]
-  );
-
-  const startBattle = useCallback(
-    async (
-      opponent: `0x${string}`,
-      player1MinDmg: number,
-      player1MaxDmg: number,
-      player2MinDmg: number,
-      player2MaxDmg: number
-    ): Promise<SendTransactionParameters> => {
-      return await callContractFunction("startBattle", [
-        opponent,
-        player1MinDmg,
-        player1MaxDmg,
-        player2MinDmg,
-        player2MaxDmg,
-      ]);
-    },
-    [callContractFunction]
+    [contractsApi, chain, account]
   );
 
   const getBattleCounter = useCallback(async (): Promise<number | null> => {
     try {
-      const result = await callContractFunction("battleCounter");
+      const result = await callContractFunction(
+        "battleCounter",
+        matchAddressLabel,
+        matchContractLabel
+      );
       return result as number;
     } catch (err) {
       console.error("Error getting battle counter:", err);
       return null;
     }
-  }, [callContractFunction]);
+  }, [callContractFunction, matchAddressLabel, matchContractLabel]);
 
   const getBattle = useCallback(
     async (battleId: number): Promise<Battle | null> => {
       try {
-        const result = await callContractFunction("battles", [battleId]);
+        const result = await callContractFunction(
+          "battles",
+          matchAddressLabel,
+          matchContractLabel,
+          [battleId]
+        );
         return result as Battle;
       } catch (err) {
         console.error("Error getting battle:", err);
         return null;
       }
     },
-    [callContractFunction]
+    [callContractFunction, matchAddressLabel, matchContractLabel]
   );
 
   const getHp = useCallback(
     async (battleId: number): Promise<PlayerStatus | null> => {
       try {
-        const result = await callContractFunction("getHP", [battleId]);
+        const result = await callContractFunction(
+          "getHP",
+          matchAddressLabel,
+          matchContractLabel,
+          [battleId]
+        );
         return result as PlayerStatus;
       } catch (err) {
         console.error("Error getting player hp:", err);
         return null;
       }
     },
-    [callContractFunction]
+    [callContractFunction, matchAddressLabel, matchContractLabel]
+  );
+
+  const getOrganiserMetadata = useCallback(
+    async (tokenId: number): Promise<NFTMetadata | null> => {
+      try {
+        // Get the tokenURI from the contract
+        const tokenURI = await callContractFunction(
+          "tokenURI",
+          organiserAddressLabel,
+          organiserContractLabel,
+          [tokenId]
+        );
+
+        if (!tokenURI || typeof tokenURI !== "string") {
+          console.error("Invalid tokenURI:", tokenURI);
+          return null;
+        }
+
+        // Convert IPFS URI to HTTP Gateway URL
+        const metadataUrl = tokenURI.startsWith("ipfs://")
+          ? tokenURI.replace("ipfs://", "https://ipfs.io/ipfs/")
+          : tokenURI;
+
+        // Fetch metadata from IPFS
+        const response = await fetch(metadataUrl);
+        if (!response.ok) {
+          console.error("Failed to fetch metadata:", response.statusText);
+          return null;
+        }
+
+        const metadata: NFTMetadata = await response.json();
+        return metadata;
+      } catch (error) {
+        console.error("Error fetching organiser metadata:", error);
+        return null;
+      }
+    },
+    [callContractFunction, organiserAddressLabel, organiserContractLabel]
   );
 
   const getAttackEvents =
@@ -260,16 +304,86 @@ const useMultiBaasWithThirdweb = (): MultiBaasHook => {
       }
     }, [eventsApi, chain, matchAddressLabel, matchContractLabel]);
 
+  const getOrganiserEvent = useCallback(
+    async (targetAddress: string): Promise<Event | null> => {
+      try {
+        const eventSignature = "OrganizerMinted(address,uint256)";
+        const response = await eventsApi.listEvents(
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          false,
+          chain,
+          organiserAddressLabel,
+          organiserContractLabel,
+          eventSignature,
+          50
+        );
+
+        if (!response.data.result || response.data.result.length === 0) {
+          console.log("No events found");
+          return null;
+        }
+
+        // Loop through events and find matching organizer
+        const matchedEvent = response.data.result.find((event) => {
+          return (
+            event.event.inputs[0].value.toLowerCase() ===
+            targetAddress.toLowerCase()
+          );
+        });
+        return matchedEvent || null; // Return event or null if not found
+      } catch (err) {
+        console.error("Error getting organizer events:", err);
+        return null;
+      }
+    },
+    [eventsApi, chain, organiserAddressLabel, organiserContractLabel]
+  );
+
+  const getOrganisedEvents = useCallback(
+    async (
+      pageNum: number = 1,
+      limit: number = 20
+    ): Promise<Array<Event> | null> => {
+      try {
+        const eventSignature = "EventCreated(uint256,address,address)";
+        const response = await eventsApi.listEvents(
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          false,
+          chain,
+          eventFactoryAddressLabel,
+          eventFactoryContractLabel,
+          eventSignature,
+          limit,
+          (pageNum - 1) * limit
+        );
+        return response.data.result;
+      } catch (err) {
+        console.error("Error getting organized events:", err);
+        return null;
+      }
+    },
+    [eventsApi, chain, eventFactoryAddressLabel, eventFactoryContractLabel]
+  );
+
   return {
     getChainStatus,
     getBattleCounter,
-    attack,
-    startBattle,
     getHp,
+    getOrganiserMetadata,
     getBattle,
     getAttackEvents,
     getBattleStartedEvents,
     getBattleEndedEvents,
+    getOrganiserEvent,
+    getOrganisedEvents,
   };
 };
 

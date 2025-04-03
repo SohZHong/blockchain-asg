@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { Accept, useDropzone } from "react-dropzone";
 import { z } from "zod";
 import {
   Form,
@@ -18,6 +19,15 @@ import { toast } from "sonner";
 import { useThirdWeb } from "@/hooks/useThirdWeb";
 import ThirdWebConnectButton from "@/components/ThirdWebConnectButton";
 import Link from "next/link";
+import { useState } from "react";
+import { generateCardAttributes } from "@/lib/rarityUtils";
+
+const MAX_FILE_SIZE = 1000000;
+const ACCEPTED_IMAGE_TYPES: Accept = {
+  "image/png": [".png"],
+  "image/jpeg": [".jpeg"],
+  "image/jpg": [".jpg"],
+};
 
 export default function EventCreationPage() {
   // Form validation logic
@@ -46,9 +56,19 @@ export default function EventCreationPage() {
       .refine((val) => /^ipfs:\/\/.+/.test(val) || /^https?:\/\/.+/.test(val), {
         message: "baseUri must be a valid URL or an IPFS link (ipfs://)",
       }),
+    images: z
+      .array(
+        z.object({
+          file: z.instanceof(File),
+        })
+      )
+      .nonempty("At least one image is required"),
   });
 
   const { account } = useThirdWeb();
+  const [imagesPreview, setImagesPreview] = useState<string[]>([]); // Preview array
+  const [imagesFiles, setImagesFiles] = useState<File[]>([]); // File array
+  const [ipfsImageUris, setIpfsImageUris] = useState<string[]>([]); // Store CIDs of images
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -61,8 +81,83 @@ export default function EventCreationPage() {
       baseUri: "",
     },
   });
+
+  const onDrop = (acceptedFiles: File[]) => {
+    const currentImages = form.getValues("images") || [];
+    const newImages = acceptedFiles.map((file) => ({ file }));
+    form.setValue("images", [...currentImages, ...newImages], {
+      shouldValidate: true,
+    });
+
+    // Generate previews
+    const previewUrls = acceptedFiles.map((file) => URL.createObjectURL(file));
+    setImagesPreview((prev) => [...prev, ...previewUrls]);
+  };
+
+  const { getRootProps, getInputProps } = useDropzone({
+    accept: ACCEPTED_IMAGE_TYPES,
+    maxSize: MAX_FILE_SIZE,
+    multiple: true,
+    onDrop,
+  });
+
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     try {
+      toast("Uploading images to IPFS...");
+
+      // Upload images to Pinata
+      const imageUris: string[] = [];
+
+      for (const imageObj of data.images) {
+        const formData = new FormData();
+        formData.append("files", imageObj.file);
+
+        const response = await fetch("/api/pinata/upload", {
+          method: "POST",
+          body: formData,
+        });
+        const res = await response.json();
+        toast(`Uploaded ${res.Name}`);
+        imageUris.push(res.IpfsHash);
+      }
+      // Generate metadata for each image
+      const metadataList = imageUris.map((uri, index) => {
+        const { rarity, health, minAttack, maxAttack } =
+          generateCardAttributes();
+        return {
+          name: `${data.name} - Image ${index + 1}`,
+          description: `Card Created for Event ${data.name}`,
+          image: `ipfs://${uri}`,
+          attributes: [
+            { trait_type: "Rarity", value: rarity },
+            { trait_type: "Health", value: health },
+            { trait_type: "Minimum Attack", value: minAttack },
+            { trait_type: "Maximum Attack", value: maxAttack },
+          ],
+        };
+      });
+      // Generate metadata json files
+      const metadataFormData = new FormData();
+      metadataList.forEach((metadata, index) => {
+        const metadataJson = new Blob([JSON.stringify(metadata)], {
+          type: "application/json",
+        });
+
+        metadataFormData.append(`files`, metadataJson, `${index}.json`); // Assign unique names
+      });
+
+      // Upload metadata files to Pinata
+      const metadataUploadResponse = await fetch("/api/pinata/upload", {
+        method: "POST",
+        body: metadataFormData,
+      });
+      const metadataRes = await metadataUploadResponse.json();
+      const baseUri = `ipfs://${metadataRes.IpfsHash}/`;
+
+      // Automatically update the baseUri field
+      form.setValue("baseUri", baseUri);
+
+      // Prepare parameters for event creation through contract
       const startDateTimestamp = Math.floor(
         new Date(data.startDate).getTime() / 1000
       );
@@ -75,10 +170,11 @@ export default function EventCreationPage() {
           location: data.location,
           participantLimit: data.participantLimit,
           startDate: startDateTimestamp,
-          rewardCount: 2, // Placeholder
-          baseUri: data.baseUri,
+          rewardCount: imagesFiles.length,
+          baseUri,
         }),
       });
+
       const res = await response.json();
       if (res.success) {
         toast("Created Event", {
@@ -203,12 +299,43 @@ export default function EventCreationPage() {
                   <FormItem>
                     <FormLabel>Event Reward's Base URI</FormLabel>
                     <FormControl>
-                      <Input placeholder="Base URI" {...field} />
+                      <Input disabled placeholder="Base URI" {...field} />
                     </FormControl>
                     <FormDescription>
                       Base URI link for the Event's Rewards
                     </FormDescription>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {/* Multiple File Upload */}
+              <FormField
+                control={form.control}
+                name="images"
+                render={({ field: { value, onChange, ...fieldProps } }) => (
+                  <FormItem>
+                    <FormLabel>Upload Event Images</FormLabel>
+                    <FormControl>
+                      {/* Dropzone UI */}
+                      <div
+                        {...getRootProps()}
+                        className="border-2 border-dashed p-4 text-center cursor-pointer"
+                      >
+                        <Input {...getInputProps()} />
+                        <p>Drag & drop images here, or click to select files</p>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                    <div className="grid grid-cols-3 gap-4 mt-4">
+                      {imagesPreview.map((preview, index) => (
+                        <img
+                          key={index}
+                          src={preview}
+                          alt={`Preview ${index + 1}`}
+                          className="h-32 w-auto rounded-lg"
+                        />
+                      ))}
+                    </div>
                   </FormItem>
                 )}
               />

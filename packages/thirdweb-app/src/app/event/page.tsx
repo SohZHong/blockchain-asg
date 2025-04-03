@@ -115,7 +115,7 @@ export default function EventListingsPage() {
         <nav className="flex flex-col items-center justify-center">
           <Link href={"/"}>Home Page</Link>
           <Link href={"/organiser"}>Organiser Page</Link>
-          <Link href={"/event/create"}>Event Listings Page</Link>
+          <Link href={"/event/create"}>Event Creation Page</Link>
         </nav>
       </div>
     </main>

@@ -33,7 +33,11 @@ contract EventImplementation is
 
   event EventStarted(uint256 participantCount, uint256 rewardCount);
   event ParticipantRegistered(address indexed participant);
-  event ScanRecorded(address indexed participant, uint256 newScanCount);
+  event ScanRecorded(
+    address indexed participant,
+    address scannedPerson,
+    uint256 newScanCount
+  );
   event NFTMinted(
     address indexed recipient,
     uint256 tokenId,
@@ -80,12 +84,13 @@ contract EventImplementation is
     emit EventStarted(eventData.registeredParticipants, eventData.rewardCount);
   }
 
-  function recordScan() external {
+  function recordScan(address scannedPerson) external {
     require(eventStarted, 'Event has not started');
-    require(isParticipant[msg.sender], 'Not a registered participant');
+    require(isParticipant[scannedPerson], 'Not a registered participant');
+    require(isParticipant[msg.sender], 'You have not registered');
 
     scanCount[msg.sender]++;
-    emit ScanRecorded(msg.sender, scanCount[msg.sender]);
+    emit ScanRecorded(msg.sender, scannedPerson, scanCount[msg.sender]);
   }
 
   function mintNFT() external {

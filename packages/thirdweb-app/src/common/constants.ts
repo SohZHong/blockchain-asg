@@ -20,7 +20,7 @@ const nftAddress = "0xc61BF2E3cD2E9C25619aAb85f516E7160f4e31c0";
 // Contract for organiser management
 const organiserAddress = "0xfb8672FDF496B66FB81b43B1b1cF1938CA7fb71e";
 // Contract for event factory
-const eventFactoryAddress = "0x26cdc1B349e50A8793Cbd1C5749334Bb39CccD62";
+const eventFactoryAddress = "0x39cf945936aC330A2BAC8581214f8C70a63E66A5";
 
 export {
   chain,

@@ -51,11 +51,7 @@ export default function EventCreationPage() {
           message: "Start date must be in the future",
         }
       ),
-    baseUri: z
-      .string()
-      .refine((val) => /^ipfs:\/\/.+/.test(val) || /^https?:\/\/.+/.test(val), {
-        message: "baseUri must be a valid URL or an IPFS link (ipfs://)",
-      }),
+    baseUri: z.string(),
     images: z
       .array(
         z.object({

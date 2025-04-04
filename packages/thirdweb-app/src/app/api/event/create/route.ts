@@ -111,7 +111,7 @@ export const POST = async (request: Request) => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${THIRDWEB_SECRET_KEY}`,
         chain: chain.id.toString(),
-        contractAddress: organiserAddress,
+        contractAddress: eventFactoryAddress,
         "x-account-address": address,
         "x-backend-wallet-address": NEXT_PUBLIC_THIRDWEB_ENGINE_WALLET_ADDRESS,
       },

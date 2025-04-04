@@ -4,11 +4,9 @@ import { getOwnedNFTs } from "thirdweb/extensions/erc721";
 import { getContract } from "thirdweb";
 import { useEffect, useState } from "react";
 import { NFT } from "thirdweb";
-import { chain } from "@/common/constants";
 import { useThirdWeb } from "@/hooks/useThirdWeb";
 import { useNFTContext } from "@/contexts/NFTContext";
 import Image from "next/image";
-import ThirdWebConnectButton from "@/components/ThirdWebConnectButton";
 import Link from "next/link";
 
 const NFT_CONTRACT_ADDRESS = "0x360E849E2b04C558067bC17Cc24bC575076eAE9F";

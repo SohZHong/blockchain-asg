@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.24;
 
-import '@celo/contracts/identity/interfaces/IRandom.sol';
-import '@celo/contracts/common/interfaces/IRegistry.sol';
-
 contract MatchManager {
   struct Player {
     address playerAddress;
@@ -54,25 +51,26 @@ contract MatchManager {
     emit BattleStarted(battleCounter, msg.sender, _opponent);
   }
 
-  function getRandom() internal view returns (uint256) {
-    if (block.chainid == 31337) {
-      // Hardhat local testnet
-      return
-        uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao)));
-    } else {
-      // Actual Celo implementation
-      return
-        uint256(
-          IRandom(
-            IRegistry(0x000000000000000000000000000000000000ce10).getAddressFor(
-              keccak256(abi.encodePacked('Random'))
-            )
-          ).random()
-        );
-    }
-  }
+// not supported on celo l2
+//   function getRandom() internal view returns (uint256) {
+//     if (block.chainid == 31337) {
+//       // Hardhat local testnet
+//       return
+//         uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao)));
+//     } else {
+//       // Actual Celo implementation
+//       return
+//         uint256(
+//           IRandom(
+//             IRegistry(0x000000000000000000000000000000000000ce10).getAddressFor(
+//               keccak256(abi.encodePacked('Random'))
+//             )
+//           ).random()
+//         );
+//     }
+//   }
 
-  function attack(uint256 _battleId) external {
+  function attack(uint256 _battleId, uint256 attacker_damage) external {
     Battle storage battle = battles[_battleId];
 
     // Conduct checks
@@ -86,24 +84,18 @@ contract MatchManager {
       ? battle.player2
       : battle.player1;
 
-    // Generate random damage within range
-    uint256 randomHash = getRandom();
-
-    uint256 damage = attacker.minDamage +
-      (randomHash % (attacker.maxDamage - attacker.minDamage + 1));
-
     // Apply damage
-    if (damage >= defender.hp) {
+    if (attacker_damage >= defender.hp) {
       defender.hp = 0;
       battle.active = false;
       emit BattleEnded(_battleId, attacker.playerAddress);
     } else {
-      defender.hp -= damage;
+      defender.hp -= attacker_damage;
 
       emit Attack(
         _battleId,
         msg.sender,
-        damage,
+        attacker_damage,
         defender.playerAddress,
         defender.hp
       );

@@ -4,9 +4,26 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import ThirdWebConnectButton from "../ThirdWebConnectButton";
+import { useThirdWeb } from "@/hooks/useThirdWeb";
+import {
+  addSessionKey,
+  getAllActiveSigners,
+} from "thirdweb/extensions/erc4337";
+import { TransactionButton } from "thirdweb/react";
+import { Button } from "../ui/button";
+import { toast } from "sonner";
+import { Spinner } from "../Spinner";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { account, smartWallet, sessionKeyOptions } = useThirdWeb();
+  const getSigners = async () => {
+    if (!smartWallet) return;
+    const res = await getAllActiveSigners({
+      contract: smartWallet,
+    });
+    console.log(res);
+  };
 
   return (
     <nav className="bg-white dark:bg-gray-900 fixed w-full z-20 top-0 start-0 border-b border-gray-200 dark:border-gray-600">
@@ -22,6 +39,39 @@ export default function Navbar() {
 
         <div className="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
           <ThirdWebConnectButton />
+          {account && <Button onClick={() => getSigners()}>Signers</Button>}
+          {sessionKeyOptions ? (
+            <TransactionButton
+              transaction={() => addSessionKey(sessionKeyOptions)}
+              onTransactionConfirmed={(tx) => {
+                toast("Session Key Added", {
+                  description: JSON.stringify(tx, (key, value) =>
+                    typeof value === "bigint" ? value.toString() : value
+                  ),
+                  action: {
+                    label: "Close",
+                    onClick: () => console.log("Closed"),
+                  },
+                });
+              }}
+              onError={(err) => {
+                toast("Error adding session key", {
+                  description: err.message,
+                  action: {
+                    label: "Close",
+                    onClick: () => console.log("Closed"),
+                  },
+                });
+              }}
+            >
+              Add Session Key
+            </TransactionButton>
+          ) : (
+            <p className="text-gray-500">
+              <Spinner />
+              Waiting for session key configuration...
+            </p>
+          )}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             type="button"

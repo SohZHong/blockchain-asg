@@ -73,6 +73,7 @@ export default function EventListingsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>ID</TableHead>
+                <TableHead>ID</TableHead>
                 <TableHead>Organizer</TableHead>
                 <TableHead>Contract</TableHead>
               </TableRow>
@@ -84,7 +85,7 @@ export default function EventListingsPage() {
                   <TableCell>{event.organizer}</TableCell>
                   <TableCell>
                     <Link
-                      href={`https://etherscan.io/address/${event.eventContract}`}
+                      href={`https://alfajores.celoscan.io/address/${event.eventContract}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-500 underline"

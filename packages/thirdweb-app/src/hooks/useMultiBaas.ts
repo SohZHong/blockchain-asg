@@ -77,6 +77,8 @@ const useMultiBaasWithThirdweb = (): MultiBaasHook => {
     process.env.NEXT_PUBLIC_MULTIBAAS_EVENT_FACTORY_CONTRACT_LABEL || "";
   const eventFactoryAddressLabel =
     process.env.NEXT_PUBLIC_MULTIBAAS_EVENT_FACTORY_ADDRESS_LABEL || "";
+  const eventImplementationContractLabel =
+    process.env.NEXT_PUBLIC_MULTIBAAS_EVENT_IMPLEMENTATION_CONTRACT_LABEL || "";
 
   const chain = "ethereum";
 

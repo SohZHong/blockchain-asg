@@ -413,9 +413,94 @@ To test the entire setup, follow these steps:
 
 ### Feedback
 
+#### More SDK Documentation Needed
+
+The SDK would benefit greatly from expanded documentation. Specifically:
+
+- Mapping between SDK methods and API endpoints (e.g., what `contractsApi.linkAddressToContract` corresponds to in the UI).
+- Sample code snippets to demonstrate common SDK workflows.
+
+#### Guidance for Factory-Spawned Contracts
+
+Clearer documentation or tutorials on how to handle child contracts created from factory contracts — including best practices for dynamically linking and syncing them in MultiBaas.
+
+#### Sample Integration Code
+
+Having a GitHub repo or official examples showing how to integrate MultiBaas SDK (e.g., for address aliasing, event indexing, webhook processing) would significantly improve the developer experience.
+
 ### Challenges
 
+#### WebSocket Setup & Debugging
+
+- Initial difficulty setting up the webhook listener, as the structure of the response body wasn’t clearly documented. Required trial-and-error and extensive logging to decode payload structure.
+
+#### Understanding Event Payloads
+
+Had to manually inspect and parse the response from the Events API to extract useful fields (e.g., `eventContract` from EventCreated, `battleId` from Attack, etc.).
+
+#### Dynamic Linking of Deployed Contracts
+
+Learned that dynamically linking newly deployed contracts via the SDK requires:
+
+1. Adding the contract as an interface under the **Library** section.
+2. Assigning the deployed address an alias using `addressApi`.
+3. Linking the address to a known contract definition using `contractsApi`.
+
+#### Insufficient Documentation on Linking Steps
+
+The documentation did not fully clarify the required order or prerequisites for linking child contracts deployed through factories, which led to confusion until clarification was received from Curvegrid support.
+
+#### Role & Permission Setup
+
+Navigating user roles and avoiding accidental exposure of sensitive access (e.g., Admin API keys). Required multiple permission tweaks to separate read-only from write operations securely.
+
+#### WebSocket Delivery Timing
+
+Webhook payloads sometimes arrived before the contract was fully linked and indexed, which required adding a delay or retry logic in the backend.
+
+#### Lack of SDK Documentation
+
+While the MultiBaas SDK is powerful, it lacks comprehensive documentation. Specifically, there’s no clear mapping between the SDK functions and the MultiBaas Web UI or API endpoints. This made it difficult to discover the correct methods (e.g., `contractsApi.linkAddressToContract`, `addressApi.createAddressAlias`) without trial and error or support intervention.
+
+#### Inconsistent eventType Field in SDK vs Webhook Response
+
+The eventType field in the WebhookEvent type from the SDK did not match the actual value received in live webhook responses. This mismatch caused unexpected errors until logging and debugging revealed the discrepancy.
+
+Expected Response as Shown by SDK:
+![SDK Interface](/images/multibaas-sdk.png)
+
+Actual Response Received:
+![Actual Response](/images/actual-received.png)
+
+#### Support via Multiple Channels
+
+Had to reach out via both live support chat and in-person at Curvegrid’s booth for some critical clarifications, highlighting gaps in async documentation.
+
 ### Wins
+
+#### Clear Separation of Read vs Write Flows
+
+Used MultiBaas exclusively for read-only, event indexing, and webhook-based triggers, while reserving Thirdweb Engine for write operations. This split created a clean and secure architecture.
+
+#### Powerful Event Indexing Capabilities
+
+Successfully used MultiBaas to track emitted events like `EventCreated`, `Attack`, `Register`, and `ListingCreated` for passive data retrieval.
+
+#### Scalable Webhook Architecture
+
+Built a generalized webhook handler that listens to emitted events and automatically syncs data into Supabase with dynamic routing logic.
+
+#### Integration with Supabase
+
+Seamlessly connected MultiBaas webhooks to Supabase writes, enabling low-latency event-based logging for actions like battle logs, participant tracking, and marketplace listings.
+
+#### Built a Robust Backend Flow
+
+Created a full pipeline: from contract deployment → event detection → webhook delivery → backend processing → data persistence. This is done all using MultiBaas’s interface and SDK.
+
+#### Enhanced Developer Understanding
+
+The challenges helped deepen understanding of contract aliasing, event decoding, permission modeling, and SDK integration workflows.
 
 ## License
 

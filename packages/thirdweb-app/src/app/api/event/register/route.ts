@@ -20,8 +20,8 @@ export const POST = async (request: Request) => {
       { status: 500 }
     );
   const body = JSON.stringify({
-    functionName: "function registerParticipant(address participant)",
-    args: [address],
+    functionName: "function registerParticipant()",
+    args: [],
     txOverrides: {
       gas: "530000",
       gasPrice: "50000000000",
@@ -31,13 +31,7 @@ export const POST = async (request: Request) => {
     },
     abi: [
       {
-        inputs: [
-          {
-            internalType: "address",
-            name: "participant",
-            type: "address",
-          },
-        ],
+        inputs: [],
         name: "registerParticipant",
         outputs: [],
         stateMutability: "nonpayable",

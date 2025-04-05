@@ -30,6 +30,7 @@ contract EventImplementation is
   mapping(address => uint256) public scanCount;
   mapping(uint256 => uint256) public milestoneMap;
   mapping(address => bool) public isParticipant;
+  mapping(address => mapping(uint256 => bool)) public hasMinted;
 
   event EventStarted(uint256 participantCount, uint256 rewardCount);
   event ParticipantRegistered(address indexed participant);
@@ -95,25 +96,69 @@ contract EventImplementation is
 
   function mintNFT() external {
     require(eventStarted, 'Event has not started');
-    require(_nextTokenId < eventData.rewardCount, 'All rewards minted');
+    require(eventData.registeredParticipants > 0, 'No participants registered');
 
-    uint256 rewardIndex = _nextTokenId + 1; // Reward milestones start from 1
-    require(
-      scanCount[msg.sender] >= milestoneMap[rewardIndex],
-      'Milestone not reached'
-    );
+    // Loop through all possible milestones to allow sequential minting
+    for (
+      uint256 rewardIndex = 0;
+      rewardIndex < eventData.rewardCount;
+      rewardIndex++
+    ) {
+      // Check if the participant has reached the milestone and hasn't minted for it yet
+      if (
+        scanCount[msg.sender] >= milestoneMap[rewardIndex] &&
+        !hasMinted[msg.sender][rewardIndex]
+      ) {
+        // Ensure rewardIndex is a valid number
+        require(
+          rewardIndex >= 0 && rewardIndex < eventData.rewardCount,
+          'Invalid reward index'
+        );
 
-    string memory metadataCID = string(
-      abi.encodePacked(eventData.baseUri, rewardIndex, '.json')
-    );
+        // Mint the NFT for this milestone
+        string memory metadataCID = string(
+          abi.encodePacked(eventData.baseUri, uint2str(rewardIndex), '.json')
+        );
 
-    _safeMint(msg.sender, rewardIndex);
-    _setTokenURI(rewardIndex, metadataCID);
+        // Mint the NFT and set the URI
+        _safeMint(msg.sender, rewardIndex);
+        _setTokenURI(rewardIndex, metadataCID);
 
-    _nextTokenId++;
-    emit NFTMinted(msg.sender, rewardIndex, metadataCID);
+        // Mark the milestone as minted for this participant
+        hasMinted[msg.sender][rewardIndex] = true;
+
+        // Emit the minting event
+        emit NFTMinted(msg.sender, rewardIndex, metadataCID);
+
+        // Stop the loop once the participant has minted the reward
+        break;
+      }
+    }
   }
 
+  // Helper function to convert uint to string
+  function uint2str(
+    uint256 _i
+  ) internal pure returns (string memory _uintAsString) {
+    if (_i == 0) {
+      return '0';
+    }
+    uint256 j = _i;
+    uint256 len;
+    while (j != 0) {
+      len++;
+      j /= 10;
+    }
+    bytes memory bstr = new bytes(len);
+    uint256 k = len - 1;
+    while (_i != 0) {
+      bstr[k--] = bytes1(uint8(48 + (_i % 10)));
+      _i /= 10;
+    }
+    return string(bstr);
+  }
+
+  // Function to retrieve all the milestone values for a participant
   function getMilestones() external view returns (uint256[] memory) {
     uint256 rewardCount = eventData.rewardCount;
     uint256[] memory milestones = new uint256[](rewardCount);

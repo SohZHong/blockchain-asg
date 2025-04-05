@@ -52,6 +52,11 @@ interface MultiBaasHook {
   getHp: (battleId: number) => Promise<PlayerStatus | null>;
   getOrganiserMetadata: (tokenId: number) => Promise<NFTMetadata | null>;
   getBattle: (battleId: number) => Promise<Battle | null>;
+  getScanCount: (
+    contractAddress: string,
+    participantAddress: string
+  ) => Promise<number | null>;
+  getMilestoneData: (contractaddress: string) => Promise<string[] | null>;
   getAttackEvents: () => Promise<Array<Event> | null>;
   getBattleStartedEvents: () => Promise<Array<Event> | null>;
   getBattleEndedEvents: () => Promise<Array<Event> | null>;
@@ -230,6 +235,44 @@ const useMultiBaasWithThirdweb = (): MultiBaasHook => {
     [callContractFunction, organiserAddressLabel, organiserContractLabel]
   );
 
+  const getMilestoneData = useCallback(
+    async (contractAddress: string): Promise<string[] | null> => {
+      try {
+        const result = await callContractFunction(
+          "getMilestones",
+          contractAddress,
+          eventImplementationContractLabel
+        );
+        return result as string[];
+      } catch (err) {
+        console.error("Error getting player hp:", err);
+        return null;
+      }
+    },
+    [callContractFunction, eventImplementationContractLabel]
+  );
+
+  const getScanCount = useCallback(
+    async (
+      contractAddress: string,
+      participantAddress: string
+    ): Promise<number | null> => {
+      try {
+        const result = await callContractFunction(
+          "scanCount",
+          contractAddress,
+          eventImplementationContractLabel,
+          [participantAddress]
+        );
+        return result as number;
+      } catch (err) {
+        console.error("Error getting player hp:", err);
+        return null;
+      }
+    },
+    [callContractFunction, eventImplementationContractLabel]
+  );
+
   const getAttackEvents =
     useCallback(async (): Promise<Array<Event> | null> => {
       try {
@@ -383,6 +426,8 @@ const useMultiBaasWithThirdweb = (): MultiBaasHook => {
     getHp,
     getOrganiserMetadata,
     getBattle,
+    getScanCount,
+    getMilestoneData,
     getAttackEvents,
     getBattleStartedEvents,
     getBattleEndedEvents,

@@ -52,6 +52,48 @@ export const eventFactory = [
         name: "eventContract",
         type: "address",
       },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "name",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "description",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "location",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "baseUri",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "participantLimit",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "startDate",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "rewardCount",
+        type: "uint256",
+      },
     ],
     name: "EventCreated",
     type: "event",
@@ -176,6 +218,19 @@ export const eventFactory = [
       {
         internalType: "address",
         name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getStoredImplementation",
+    outputs: [
+      {
+        internalType: "address",
+        name: "impl",
         type: "address",
       },
     ],

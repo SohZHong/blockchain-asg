@@ -51,7 +51,7 @@ export default function ContractAddressPage() {
           // Check if event can be started
           const canStartEvent =
             account.address.toLowerCase() === data.organizer!.toLowerCase() &&
-            new Date() > new Date(eventData!.startDate);
+            new Date() > new Date(data.start_date!);
 
           setCanStartEvent(canStartEvent);
         }

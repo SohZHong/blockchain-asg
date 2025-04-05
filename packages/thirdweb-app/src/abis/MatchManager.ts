@@ -76,12 +76,47 @@ export const matchManager = [
         name: "player2",
         type: "address",
       },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "player1MinDmg",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "player1MaxDmg",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "player2MinDmg",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "player2MaxDmg",
+        type: "uint256",
+      },
     ],
     name: "BattleStarted",
     type: "event",
   },
   {
-    inputs: [{ internalType: "uint256", name: "_battleId", type: "uint256" }],
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_battleId",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "attacker_damage",
+        type: "uint256",
+      },
+    ],
     name: "attack",
     outputs: [],
     stateMutability: "nonpayable",
@@ -90,20 +125,48 @@ export const matchManager = [
   {
     inputs: [],
     name: "battleCounter",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
     stateMutability: "view",
     type: "function",
   },
   {
-    inputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
     name: "battles",
     outputs: [
       {
         components: [
-          { internalType: "address", name: "playerAddress", type: "address" },
-          { internalType: "uint256", name: "hp", type: "uint256" },
-          { internalType: "uint256", name: "minDamage", type: "uint256" },
-          { internalType: "uint256", name: "maxDamage", type: "uint256" },
+          {
+            internalType: "address",
+            name: "playerAddress",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "hp",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "minDamage",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "maxDamage",
+            type: "uint256",
+          },
         ],
         internalType: "struct MatchManager.Player",
         name: "player1",
@@ -111,38 +174,96 @@ export const matchManager = [
       },
       {
         components: [
-          { internalType: "address", name: "playerAddress", type: "address" },
-          { internalType: "uint256", name: "hp", type: "uint256" },
-          { internalType: "uint256", name: "minDamage", type: "uint256" },
-          { internalType: "uint256", name: "maxDamage", type: "uint256" },
+          {
+            internalType: "address",
+            name: "playerAddress",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "hp",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "minDamage",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "maxDamage",
+            type: "uint256",
+          },
         ],
         internalType: "struct MatchManager.Player",
         name: "player2",
         type: "tuple",
       },
-      { internalType: "address", name: "currentTurn", type: "address" },
-      { internalType: "bool", name: "active", type: "bool" },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [{ internalType: "uint256", name: "_battleId", type: "uint256" }],
-    name: "getHP",
-    outputs: [
-      { internalType: "uint256", name: "p1HP", type: "uint256" },
-      { internalType: "uint256", name: "p2HP", type: "uint256" },
+      {
+        internalType: "address",
+        name: "currentTurn",
+        type: "address",
+      },
+      {
+        internalType: "bool",
+        name: "active",
+        type: "bool",
+      },
     ],
     stateMutability: "view",
     type: "function",
   },
   {
     inputs: [
-      { internalType: "address", name: "_opponent", type: "address" },
-      { internalType: "uint256", name: "_player1MinDmg", type: "uint256" },
-      { internalType: "uint256", name: "_player1MaxDmg", type: "uint256" },
-      { internalType: "uint256", name: "_player2MinDmg", type: "uint256" },
-      { internalType: "uint256", name: "_player2MaxDmg", type: "uint256" },
+      {
+        internalType: "uint256",
+        name: "_battleId",
+        type: "uint256",
+      },
+    ],
+    name: "getHP",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "p1HP",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "p2HP",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_opponent",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "_player1MinDmg",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "_player1MaxDmg",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "_player2MinDmg",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "_player2MaxDmg",
+        type: "uint256",
+      },
     ],
     name: "startBattle",
     outputs: [],

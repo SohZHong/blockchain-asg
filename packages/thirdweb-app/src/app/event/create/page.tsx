@@ -166,7 +166,7 @@ export default function EventCreationPage() {
           location: data.location,
           participantLimit: data.participantLimit,
           startDate: startDateTimestamp,
-          rewardCount: imagesFiles.length,
+          rewardCount: metadataList.length,
           baseUri,
         }),
       });

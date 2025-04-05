@@ -33,7 +33,7 @@
         <li><a href="#built-with">Built With</a></li>
         <li><a href="#prerequisites">Prerequisites</a></li>
      </ol>
-    <li><a href="#how-to-use-celo-composer">How to use Celo Composer</a></li>
+    <li><a href="#multibaas-setup-and-testing-instructions">Multibaas Setup and Testing Instructions</a></li>
         <ol>
           <li><a href="#install-dependencies">Install Dependencies</a></li>
           <li><a href="#deploy-a-smart-contract">Deploy a Smart Contract</a></li>
@@ -83,183 +83,347 @@ Celo Composer is built on Celo to make it simple to build dApps using a variety 
 - Node (v20 or higher)
 - Git (v2.38 or higher)
 
-## How to use Celo Composer
+## How Multibaas is Used
 
-The easiest way to start with Celo Composer is using `@celo/celo-composer`. This CLI tool lets you quickly start building dApps on Celo, including several templates. To get started, just run the following command, and follow the steps:
+MultiBaas serves as the read-layer integration for the project, acting as the intermediary for indexing contract events and handling selected real-time triggers. All contracts are deployed and verified via **Hardhat**, and then linked within the MultiBaas UI and SDK. The platform is not used for any write operations as all writes are handled separately (e.g., via Thirdweb Engine and signed session keys).
 
-- Step 1
+Main Usages are:
+
+- Contract Read Operations through SDK
+- Frontend development with CORS origins
+- Event indexing
+- Webhook
+
+This project involves the following smart contracts:
+
+- Marketplace: Handles listings and offers
+- MatchManager: Controls the battle system
+- OrganizerToken: Verifies permission to create events
+- EventFactory: Deploys event contracts
+- Event (implementation): The template for all deployed event contracts
+
+### Contract Read Operations
+
+**Purpose**: Use MultiBaas to call view/pure contract functions through the SDK without needing to instantiate a full Web3 provider.
+
+These read operations are useful for fetching on-chain state in a simple, reliable, and gasless way.
+
+#### Example Usage: Reading Milestones
+
+If the contract has a function like this:
+
+```solidity
+  function getMilestones() external view returns (uint256[] memory) {
+    uint256 rewardCount = eventData.rewardCount;
+    uint256[] memory milestones = new uint256[](rewardCount);
+
+    for (uint256 i = 1; i <= rewardCount; i++) {
+      milestones[i - 1] = milestoneMap[i];
+    }
+
+    return milestones;
+  }
+```
+
+We can use Multibaas to query it via the SDK:
+
+```typescript
+const getMilestoneData = useCallback(
+  async (contractAddress: string): Promise<string[] | null> => {
+    try {
+      const result = await callContractFunction(
+        'getMilestones',
+        contractAddress,
+        eventImplementationContractLabel
+      );
+      return result as string[];
+    } catch (err) {
+      console.error('Error getting player hp:', err);
+      return null;
+    }
+  },
+  [callContractFunction, eventImplementationContractLabel]
+);
+```
+
+### Event Indexing (Passive Tracking)
+
+**Purpose**: Used to monitor and expose blockchain events via Events API, for querying or displaying on the frontend, without requiring backend-side actions.
+
+Examples:
+
+- Displaying event details (eventId, name, location):
+
+```typescript
+const getOrganisedEvents = useCallback(
+  async (pageNum: number = 1, limit: number = 20): Promise<Array<Event>> => {
+    const eventSignature =
+      'EventCreated(uint256,address,address,string,string,string,string,uint256,uint256,uint256)';
+    const response = await eventsApi.listEvents(
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      false,
+      chain,
+      eventFactoryAddressLabel,
+      eventFactoryContractLabel,
+      eventSignature,
+      limit,
+      (pageNum - 1) * limit
+    );
+    return response.data.result;
+  },
+  [eventsApi, chain, eventFactoryAddressLabel, eventFactoryContractLabel]
+);
+```
+
+### Webhook Triggers (Active Processing)
+
+**Purpose**: Used for reacting to specific events in real-time, where backend logic needs to execute immediately upon event emission.
+
+In our project, the primary webhook use case is the `EventCreated` event emitted by the `EventFactory` contract. When this fires, a webhook is triggered that:
+
+1. Receives the deployed event contract address
+2. Save the event details into `Supabase`.
+3. Calls the `addressApi` to link the new contract to a readable alias
+4. Calls the `contractsApi` to associate the alias with the implementation ABI
+5. From this point, the new event contract is fully indexed and queryable
+
+Example Implementation:
+
+```typescript
+if (event.event.name === 'EventCreated') {
+  const inputs = event.event.inputs;
+
+  // Extract necessary fields
+  const eventId = inputs.find(
+    (input: EventField) => input.name === 'eventId'
+  )?.value;
+  const organizer = inputs.find(
+    (input: EventField) => input.name === 'organizer'
+  )?.value;
+  const eventContract = inputs.find(
+    (input: EventField) => input.name === 'eventContract'
+  )?.value;
+  const name = inputs.find((input: EventField) => input.name === 'name')?.value;
+  const description = inputs.find(
+    (input: EventField) => input.name === 'description'
+  )?.value;
+  const location = inputs.find(
+    (input: EventField) => input.name === 'location'
+  )?.value;
+  const participantLimit = inputs.find(
+    (input: EventField) => input.name === 'participantLimit'
+  )?.value;
+  const startDate = inputs.find(
+    (input: EventField) => input.name === 'startDate'
+  )?.value;
+  const rewardCount = inputs.find(
+    (input: EventField) => input.name === 'rewardCount'
+  )?.value;
+
+  // Save to Supabase
+  const { data, error } = await supabase.from('events').insert([
+    {
+      event_id: eventId,
+      organizer,
+      address: eventContract,
+      name,
+      description,
+      location,
+      participant_limit: Number(participantLimit),
+      reward_count: Number(rewardCount),
+      start_date: new Date(startDate * 1000).toISOString(),
+    },
+  ]);
+
+  if (error) {
+    console.error('Error inserting into Supabase:', error);
+    throw error;
+  } else {
+    console.log('Successfully saved event:', data);
+  }
+
+  // Create an alias for the new address
+  const alias = `eventimplementation${eventId}`;
+  await addressApi.setAddress('ethereum', {
+    alias,
+    address: eventContract,
+  });
+
+  // Link to multibaas
+  await contractsApi.linkAddressContract('ethereum', alias, {
+    label: `eventimplementation1`,
+    startingBlock: 'latest',
+  });
+}
+```
+
+This enables dynamic on-chain deployments (like new events) to be tracked without pre-registering them.
+
+## Multibaas Setup and Testing Instructions
+
+This section will guide you through the process of setting up and testing Multibaas with event tracking. The setup process involves deploying contracts, setting up a webhook server, and using the Multibaas SDK to manage and link event contracts.
+
+### Prerequisites
+
+Ensure that you have the following installed:
+• Node.js (v20 or above)
+• Docker (for containerized services)
+• Multibaas SDK
+• Webhook server (e.g., Express.js)
+
+### Setup Steps
+
+#### 1. Deploy Event Implementation and Event Factory
+
+The first step in setting up your system is to deploy the event implementation and event factory contracts.
+
+- **Event Implementation**: This contract defines the logic of an event. It contains the business logic and manages the event’s state.
+- **Event Factory**: This contract is used to deploy new events and manage them at a higher level.
+
+You can deploy them by navigating to `packages/hardhat` directory and run this in the CLI:
 
 ```bash
-npx @celo/celo-composer@latest create
+npx hardhat ignition deploy ignition/modules/EventModule.ts --reset --network alfajores --verify
 ```
 
-- Step 2: Provide the Project Name: You will be prompted to enter the name of your project.
+After deploying both contracts, verify their deployment on the blockchain and make a note of their addresses.
 
-```text
-What is your project name:
+![Deployed and verified contracts](/images/deployed-contracts.png)
+
+#### 2. Add Implementation as an Interface in Multibaas
+
+Now, you’ll need to connect the Event Implementation contract to Multibaas by adding it as an interface.
+
+1.  In your Multibaas cosole, navigate to the **Library** page under **Contracts** section.
+2.  Click on the **"+"** button on the top left, click on **"Link Contract"**.
+3.  Then, click on **"Contract from Address"** and input the event implementation contract's address into the field.
+4.  Click on **"Search"**, there should be an option to select the contract Multibaas found, select **"Implementation Contract"** and click **"Continue"**.
+5.  Input your preferred label and version and click **"Continue"**.
+6.  You're done. This step allows Multibaas to recognize the contract’s methods and interact with it on-chain.
+
+#### 3. Track Events from Event Factory Through Address
+
+Next, you need to track the events emitted by the Event Factory contract. Multibaas will listen for specific events and process them accordingly.
+
+1.  In your Multibaas cosole, navigate to the **On-Chain** page under **Contracts** section.
+2.  Click on the **"+"** button on the top left, click on **"Link Contract"**.
+3.  Then, click on **"Contract from Address"** and input the event factory contract's address into the field.
+4.  Click on **"Search"**, there should be an option to select the contract Multibaas found, click **"Continue"**.
+5.  Input your preferred label and version and click **"Continue"**.
+
+This ensures that any new event created by the Event Factory will trigger an event in Multibaas, allowing you to process the information.
+
+#### 4. Write a Webhook Server to Listen for Events
+
+Now that Multibaas is tracking the events, you need to write a server that listens for the "EventCreated" webhook. This webhook will be triggered whenever a new event is created by the Event Factory.
+
+1. Set up an Express.js (or other suitable framework) server.
+2. The server should listen for POST requests to a route like /webhook.
+3. On receiving the webhook, extract the necessary data (e.g., event contract address, event ID).
+
+Example Webhook Server (Express.js With Typescript):
+
+```typescript
+import express, { Request, Response } from 'express';
+import { ContractsApi, AddressesApi } from '@curvegrid/multibaas-sdk';
+
+const app = express();
+
+// Initialize Multibaas APIs
+const contractsApi = new ContractsApi(mbConfig);
+const addressApi = new AddressesApi(mbConfig);
+
+// Webhook Receiver
+app.post('/webhook', async (req: Request, res: Response) => {
+  const eventList = req.body;
+  try {
+    for (var i = 0; i < eventList.length; i++) {
+      const event: Event = eventList[i].data;
+
+      if (event.event.name === 'EventCreated') {
+        const inputs = event.event.inputs;
+
+        // Extract necessary fields
+        const eventId = inputs.find(
+          (input: EventField) => input.name === 'eventId'
+        )?.value;
+        const organizer = inputs.find(
+          (input: EventField) => input.name === 'organizer'
+        )?.value;
+        const eventContract = inputs.find(
+          (input: EventField) => input.name === 'eventContract'
+        )?.value;
+        const name = inputs.find(
+          (input: EventField) => input.name === 'name'
+        )?.value;
+        const description = inputs.find(
+          (input: EventField) => input.name === 'description'
+        )?.value;
+        const location = inputs.find(
+          (input: EventField) => input.name === 'location'
+        )?.value;
+        const participantLimit = inputs.find(
+          (input: EventField) => input.name === 'participantLimit'
+        )?.value;
+        const startDate = inputs.find(
+          (input: EventField) => input.name === 'startDate'
+        )?.value;
+        const rewardCount = inputs.find(
+          (input: EventField) => input.name === 'rewardCount'
+        )?.value;
+
+        // Create an alias for the new address
+        const alias = 'YOUR_ALIAS';
+        await addressApi.setAddress('ethereum', {
+          alias,
+          address: eventContract,
+        });
+
+        // Link to multibaas
+        await contractsApi.linkAddressContract('ethereum', alias, {
+          label: ' <YOUR_CONTRACT_LABEL>',
+          startingBlock: 'latest',
+        });
+      }
+    }
+    res.status(200).json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Start server
+app.listen(3001, () => {
+  console.log('Server running on port 3001');
+});
 ```
 
-- Step 3: Choose to Use Hardhat: You will be asked if you want to use Hardhat. Select Yes or No.
+After receiving the webhook, the webhook will link the newly deployed child contract (i.e., the event) to an alias using the Address API from the Multibaas SDK:
 
-```text
-Do you want to use Hardhat? (Y/n)
-```
+1. Extract the contract address from the webhook payload.
+2. Use the `addressApi.setAddress` method to link the contract to an alias on the Ethereum network.
 
-- Step 4: Choose to Use a Template: You will be asked if you want to use a template. Select `Yes` or `No`.
+This alias will serve as a reference to the newly created event contract.
 
-```text
-Do you want to use a template?
-```
+Finally, after linking the address to an alias, the webhook use the Contracts API to link the address to a contract. This allows Multibaas to track and sync events from the new event contract.
 
-- Step 5: Select a Template: If you chose to use a template, you will be prompted to select a template from the list provided.
+1. Use the `contractsApi.linkAddressContract` method.
+2. Specify the contract label (e.g., EventCreated) and the starting block (e.g., `latest`).
+3. This ensures that Multibaas can now track the events from this newly linked contract.
 
-```text
-- Minipay
-- Valora
-```
+#### 5. Testing
 
-- Step 6: Provide the Project Owner's Name: You will be asked to enter the project owner's name.
+To test the entire setup, follow these steps:
 
-```text
-Project Owner name:
-```
-
-- Step 7: Wait for Project Creation: The CLI will now create the project based on your inputs. This may take a few minutes.
-
-- Step 8: Follow the instructions to start the project. The same will be displayed on the console after the project is created.
-
-```text
-🚀 Your starter project has been successfully created!
-```
-
-## Install Dependencies
-
-Once your custom dApp has been created, just install dependencies, either with yarn:
-
-```bash
-   yarn
-```
-
-If you prefer npm, you can run:
-
-```bash
-   npm install
-```
-
-## Deploy a Smart Contract
-
-Find the detailed instructions on how to run your smart contract in [packages/hardhat/README.md](./packages/hardhat/README.md).
-
-For quick development follow these three steps:
-
-1. Change `packages/hardhat/env.template` to `packages/hardhat/env` and add your `PRIVATE_KEY` into the `.env` file.
-2. Make sure your wallet is funded when deploying to testnet or mainnet. You can get test tokens for deploying it on Alfajores from the [Celo Faucet](https://faucet.celo.org/alfajores).
-3. Run the following commands from the `packages/hardhat` folder to deploy your smart contract to the Celo Testnet Alfajores:
-
-```bash
-npx hardhat ignition deploy ./ignition/modules/Lock.ts --network alfajores
-```
-
-## Deploy your Dapp Locally
-
-Find the detailed instructions on how to run your frontend in the [`react-dapp` README.md](./packages/react-app/README.md).
-
-Before you start the project, please follow these steps:
-
-1. Rename the file:
-   packages/react-app/.env.template
-   to
-   packages/react-app/.env
-
-2. Open the newly renamed .env file and add your WalletConnect Cloud Project ID from [WalletConnect Cloud](https://cloud.walletconnect.com/)
-
-Once you've done that, you're all set to start your project!
-
-Run the following commands from the `packages/react-app` folder to start the project:
-
-```bash
-   yarn dev
-```
-
-If you prefer npm, you can run:
-
-```bash
-   npm run dev
-```
-
-Thank you for using Celo Composer! If you have any questions or need further assistance, please refer to the README or reach out to our team.
-
-**_🔥Voila, you have a dApp ready to go. Start building your dApp on Celo._**
-
-## Add UI Components
-
-To keep the Celo Composer as lightwieght as possible we didn't add any components but rather a guide on how to add the components you need yourself with a very simple to use components library. To learn how to add UI components using [ShadCN](https://ui.shadcn.com/) in this project, refer to the [UI Components Guide](./docs/UI_COMPONENTS.md).
-
-## Deploy with Vercel
-
-The Celo Composer is a great tool for hackathons and fast deployments. We created a guide for you, using the Vercel CLI to create a live deployment in minutes. For detailed instructions on deploying the Next.js app using Vercel CLI, refer to the [Deployment Guide](./docs/DEPLOYMENT_GUIDE.md).
-
-## Supported Frameworks
-
-### React / Nextjs
-
-- Support for Website and Progressive Web Application.
-- Works with all major crypto wallets.
-
-Check [nextjs docs](https://nextjs.org/docs) to learn more about it.
-
-### Hardhat
-
-- Robust framework for building and testing smart contracts.
-- Compatible with various Ethereum development tools and plugins.
-
-Check [hardhat docs](https://hardhat.org/hardhat-runner/docs/getting-started) to learn more about it.
-
-## Supported Templates
-
-### Minipay
-
-- Pre-built template for creating a mini-payment application.
-- Seamless integration with Celo blockchain for handling payments.
-
-Checkout [minipay docs](https://docs.celo.org/developer/build-on-minipay/overview) to learn more about it.
-
-### Valora
-
-- Template designed for Valora wallet integration.
-- Facilitates easy wallet connectivity and transaction management.
-
-Checkout [valora docs](https://docs.valora.xyz/) to learn more about it.
-
-## Support
-
-Join the Celo Discord server at <https://chat.celo.org>. Reach out on the dedicated repo channel [here](https://discord.com/channels/600834479145353243/941003424298856448).
-
-<!-- ROADMAP -->
-
-## Roadmap
-
-See the [open issues](https://github.com/celo-org/celo-composer/issues) for a full list of proposed features (and known issues).
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-<!-- CONTRIBUTING -->
-
-## Contributing
-
-We welcome contributions from the community.
-
-<p align="right">(<a href="#top">back to top</a>)</p>
+1. Deploy the event factory and event implementation contracts as described above.
+2. Trigger an event by creating a new event through the Event Factory contract.
+3. Check if the webhook is received by your server.
+4. Verify that the event contract is linked correctly in Multibaas and that the event is synced properly.
 
 ## License
 
 Distributed under the MIT License. See `LICENSE.txt` for more information.
-
-<!-- CONTACT -->
-
-## Contact
-
-- [@CeloDevs](https://twitter.com/CeloDevs)
-- [Discord](https://discord.com/invite/celo)
-
-<p align="right">(<a href="#top">back to top</a>)</p>

@@ -113,4 +113,15 @@ contract EventImplementation is
     _nextTokenId++;
     emit NFTMinted(msg.sender, rewardIndex, metadataCID);
   }
+
+  function getMilestones() external view returns (uint256[] memory) {
+    uint256 rewardCount = eventData.rewardCount;
+    uint256[] memory milestones = new uint256[](rewardCount);
+
+    for (uint256 i = 1; i <= rewardCount; i++) {
+      milestones[i - 1] = milestoneMap[i];
+    }
+
+    return milestones;
+  }
 }

@@ -1,26 +1,9 @@
 <!-- TITLE -->
 <p align="center">
   <img width="100px" src="https://github.com/celo-org/celo-composer/blob/main/images/readme/celo_isotype.svg" align="center" alt="Celo" />
- <h2 align="center">Celo Composer</h2>
- <p align="center">Build, deploy, and iterate quickly on decentralized applications using Celo.</p>
+ <h2 align="center">Mystic Kaizer</h2>
+ <p align="center">Our One Liner</p>
 </p>
-  <p align="center">
-    <a href="https://github.com/celo-org/celo-composer/graphs/stars">
-      <img alt="GitHub Contributors" src="https://img.shields.io/github/stars/celo-org/celo-composer?color=FCFF52" />
-    </a>
-    <a href="https://github.com/celo-org/celo-composer/graphs/contributors">
-      <img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/celo-org/celo-composer?color=E7E3D4" />
-    </a>
-    <a href="https://github.com/celo-org/celo-composer/issues">
-      <img alt="Issues" src="https://img.shields.io/github/issues/celo-org/celo-composer?color=E7E3D4" />
-    </a>
-    <a href="https://github.com/celo-org/celo-composer/pulls">
-      <img alt="GitHub pull requests" src="https://img.shields.io/github/issues-pr/celo-org/celo-composer?color=E7E3D4" />
-    </a>
-    <a href="https://opensource.org/license/mit/">
-      <img alt="MIT License" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
-    </a>
-  </p>
 </p>
 
 <!-- TABLE OF CONTENTS -->
@@ -33,22 +16,25 @@
         <li><a href="#built-with">Built With</a></li>
         <li><a href="#prerequisites">Prerequisites</a></li>
      </ol>
+     <li><a href="#how-multibaas-is-used">How Multibaas Is Used</a>
+        <ol>
+          <li><a href="#contract-read-operations">Contract Read Operations</a></li>
+          <li><a href="#event-indexing">Event Indexing</a></li>
+          <li><a href="#webhook-triggers">Webhook Triggers</a></li>
+        </ol>
+     </li>
     <li><a href="#multibaas-setup-and-testing-instructions">Multibaas Setup and Testing Instructions</a></li>
         <ol>
-          <li><a href="#install-dependencies">Install Dependencies</a></li>
-          <li><a href="#deploy-a-smart-contract">Deploy a Smart Contract</a></li>
-          <li><a href="#deploy-your-dapp-locally">Deploy your Dapp Locally</a></li>
-          <li><a href="#add-ui-components">Add UI Components</a></li>
-          <li><a href="#deploy-with-vercel">Deploy with Vercel</a></li>
-          <li><a href="#supported-frameworks">Supported Frameworks</a></li>
-          <li><a href="#supported-templates">Supported Templates</a></li>
+          <li><a href="#prerequisites">Prerequisites</a></li>
+          <li><a href="#setup-steps">Setup Steps</a></li>
         </ol>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#support">Support</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
+    <li><a href="#multibaas-setup-and-testing-instructions">Multibaas Setup and Testing Instructions</a></li>
+        <ol>
+          <li><a href="#feedback">Feedback</a></li>
+          <li><a href="#challenges">Challenges</a></li>
+          <li><a href="#wins">Wins</a></li>
+        </ol>
     <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
   </ol>
 </div>
 
@@ -56,22 +42,19 @@
 
 ## About The Project
 
-Celo Composer allows you to quickly build, deploy, and iterate on decentralized applications using Celo. It provides a number of frameworks, templates, deployment and component support, and Celo specific functionality to help you get started with your next dApp.
-
-It is the perfect lightweight starter-kit for any hackathon and for quickly testing out integrations and deployments on Celo.
+One Liner for our project
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## Built With
 
-Celo Composer is built on Celo to make it simple to build dApps using a variety of front-end frameworks, and libraries.
-
 - [Celo](https://celo.org/)
+- [Multibaas](https://docs.curvegrid.com/multibaas)
 - [Solidity](https://docs.soliditylang.org/en/v0.8.19/)
 - [Hardhat](https://hardhat.org/)
-- [React.js](https://reactjs.org/)
+- [Thirdweb](https://portal.thirdweb.com/)
+- [Pinata](https://pinata.cloud/)
 - [Next.js](https://nextjs.org/)
-- [viem](https://viem.sh/)
 - [Tailwind](https://tailwindcss.com/)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
@@ -146,11 +129,11 @@ const getMilestoneData = useCallback(
 );
 ```
 
-### Event Indexing (Passive Tracking)
+### Event Indexing
 
 **Purpose**: Used to monitor and expose blockchain events via Events API, for querying or displaying on the frontend, without requiring backend-side actions.
 
-Examples:
+#### Examples:
 
 - Displaying event details (eventId, name, location):
 
@@ -179,7 +162,7 @@ const getOrganisedEvents = useCallback(
 );
 ```
 
-### Webhook Triggers (Active Processing)
+### Webhook Triggers
 
 **Purpose**: Used for reacting to specific events in real-time, where backend logic needs to execute immediately upon event emission.
 
@@ -191,7 +174,9 @@ In our project, the primary webhook use case is the `EventCreated` event emitted
 4. Calls the `contractsApi` to associate the alias with the implementation ABI
 5. From this point, the new event contract is fully indexed and queryable
 
-Example Implementation:
+[Github Repo for Webhook](https://github.com/SohZHong/mystic-kaizer-express)
+
+#### Example Implementation:
 
 ```typescript
 if (event.event.name === 'EventCreated') {
@@ -423,6 +408,14 @@ To test the entire setup, follow these steps:
 2. Trigger an event by creating a new event through the Event Factory contract.
 3. Check if the webhook is received by your server.
 4. Verify that the event contract is linked correctly in Multibaas and that the event is synced properly.
+
+## Experience with Multibaas
+
+### Feedback
+
+### Challenges
+
+### Wins
 
 ## License
 

@@ -85,10 +85,14 @@ export default function ContractAddressPage() {
     );
   }
 
-  const onClick = async () => {
+  const onStartEvent = async () => {
     try {
       const response = await fetch("/api/event/start", {
         method: "POST",
+        body: JSON.stringify({
+          address: account?.address as string,
+          eventAddress: contractAddress,
+        }),
       });
       const res = await response.json();
       if (res.success) {
@@ -103,6 +107,41 @@ export default function ContractAddressPage() {
         });
       } else {
         toast("Error Starting Event", {
+          action: {
+            label: "Close",
+            onClick: () => console.log("Closed"),
+          },
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const onRegisteringEvent = async () => {
+    try {
+      const response = await fetch("/api/event/register", {
+        method: "POST",
+        body: JSON.stringify({
+          address: account?.address as string,
+          eventAddress: contractAddress,
+        }),
+      });
+      const res = await response.json();
+      if (res.success) {
+        toast("Registration Successful", {
+          description: JSON.parse(
+            JSON.stringify(res, (key, value) =>
+              typeof value === "bigint" ? value.toString() : value
+            )
+          ),
+          action: {
+            label: "Close",
+            onClick: () => console.log("Closed"),
+          },
+        });
+      } else {
+        toast("Error Joining Event", {
           action: {
             label: "Close",
             onClick: () => console.log("Closed"),
@@ -161,11 +200,21 @@ export default function ContractAddressPage() {
       {eventData?.isStarted && isOrganiser && (
         <div className="mt-6">
           <Button
-            onClick={onClick}
+            onClick={onStartEvent}
             disabled={!canStartEvent}
             className="bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-700 transition"
           >
             Start Event
+          </Button>
+        </div>
+      )}
+      {!eventData?.isStarted && !isOrganiser && (
+        <div className="mt-6">
+          <Button
+            onClick={onRegisteringEvent}
+            className="bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-700 transition"
+          >
+            Register
           </Button>
         </div>
       )}

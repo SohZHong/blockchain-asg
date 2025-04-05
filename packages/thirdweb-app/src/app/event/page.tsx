@@ -15,8 +15,10 @@ import useMultiBaasWithThirdweb from "@/hooks/useMultiBaas";
 import { Spinner } from "@/components/Spinner";
 import Link from "next/link";
 import { Event, EventField } from "@curvegrid/multibaas-sdk";
+import { useRouter } from "next/navigation";
 
 export default function EventListingsPage() {
+  const router = useRouter();
   const { getOrganisedEvents } = useMultiBaasWithThirdweb();
 
   // State for events and pagination
@@ -32,6 +34,13 @@ export default function EventListingsPage() {
       return {
         eventId: inputs.find((input: EventField) => input.name === "eventId")
           ?.value,
+        name: inputs.find((input: EventField) => input.name === "name")?.value,
+        description: inputs.find(
+          (input: EventField) => input.name === "description"
+        )?.value,
+        startDate: inputs.find(
+          (input: EventField) => input.name === "startDate"
+        )?.value,
         organizer: inputs.find(
           (input: EventField) => input.name === "organizer"
         )?.value,
@@ -73,15 +82,24 @@ export default function EventListingsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>ID</TableHead>
-                <TableHead>ID</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Start Date</TableHead>
                 <TableHead>Organizer</TableHead>
                 <TableHead>Contract</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {events.map((event, index) => (
-                <TableRow key={index}>
+                <TableRow
+                  key={index}
+                  onClick={() => router.push(`/event/${event.eventContract}`)}
+                  className="cursor-pointer"
+                >
                   <TableCell>{event.eventId}</TableCell>
+                  <TableCell>{event.name}</TableCell>
+                  <TableCell>{event.description}</TableCell>
+                  <TableCell>{event.startDate}</TableCell>
                   <TableCell>{event.organizer}</TableCell>
                   <TableCell>
                     <Link

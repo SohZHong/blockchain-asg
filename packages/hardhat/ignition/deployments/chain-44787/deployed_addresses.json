@@ -1,3 +1,4 @@
 {
-  "MatchManagerModule#MatchManager": "0x01d6Fd3d96d715B04932A21868C3b0c97C7aabc2"
+  "EventModule#EventFactory": "0xDA7CAd26299A991F625e1A7f089F8F763ed32F5A",
+  "EventModule#EventImplementation": "0x251c0675a90ee3e21c3B8F55e2F0308Da90cc298"
 }

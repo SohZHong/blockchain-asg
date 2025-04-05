@@ -197,7 +197,7 @@ export default function ContractAddressPage() {
       ) : (
         <p className="text-white text-center">No event data found.</p>
       )}
-      {eventData?.isStarted && isOrganiser && (
+      {!eventData?.isStarted && isOrganiser && (
         <div className="mt-6">
           <Button
             onClick={onStartEvent}

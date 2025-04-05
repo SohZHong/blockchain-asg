@@ -55,17 +55,17 @@ contract EventImplementation is
     eventData = _eventData;
   }
 
-  function registerParticipant(address participant) external onlyOwner {
-    require(!isParticipant[participant], 'Already registered');
+  function registerParticipant() external {
+    require(!isParticipant[msg.sender], 'Already registered');
     require(
       eventData.participantLimit == 0 ||
         eventData.registeredParticipants < eventData.participantLimit,
       'Participant limit reached'
     );
-    isParticipant[participant] = true;
+    isParticipant[msg.sender] = true;
     eventData.registeredParticipants++;
 
-    emit ParticipantRegistered(participant);
+    emit ParticipantRegistered(msg.sender);
   }
 
   function startEvent() external onlyOwner {

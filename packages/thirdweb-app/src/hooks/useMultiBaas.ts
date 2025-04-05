@@ -8,6 +8,7 @@ import {
   MethodCallResponse,
   TransactionToSignResponse,
   Event,
+  EventField,
 } from "@curvegrid/multibaas-sdk";
 import { useMemo, useCallback } from "react";
 import { useActiveAccount } from "thirdweb/react";
@@ -57,6 +58,7 @@ interface MultiBaasHook {
     participantAddress: string
   ) => Promise<number | null>;
   getMilestoneData: (contractaddress: string) => Promise<string[] | null>;
+  getAllNFTContract: () => Promise<string[] | null>;
   getAttackEvents: () => Promise<Array<Event> | null>;
   getBattleStartedEvents: () => Promise<Array<Event> | null>;
   getBattleEndedEvents: () => Promise<Array<Event> | null>;
@@ -273,6 +275,48 @@ const useMultiBaasWithThirdweb = (): MultiBaasHook => {
     [callContractFunction, eventImplementationContractLabel]
   );
 
+  const getAllNFTContract = useCallback(async (): Promise<string[] | null> => {
+    try {
+      const eventSignature =
+        "EventCreated(uint256,address,address,string,string,string,string,uint256,uint256,uint256)";
+      const response = await eventsApi.listEvents(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        false,
+        chain,
+        eventFactoryAddressLabel,
+        eventFactoryContractLabel,
+        eventSignature
+      );
+
+      const events = response.data.result;
+      const eventContracts: string[] = [];
+      for (let i = 0; i < events.length; i++) {
+        const event: Event = events[i];
+
+        if (event.event.name === "EventCreated") {
+          const inputs = event.event.inputs;
+
+          // Extract the eventContract field from the inputs
+          const eventContract = inputs.find(
+            (input: EventField) => input.name === "eventContract"
+          )?.value;
+
+          if (eventContract) {
+            eventContracts.push(eventContract as string);
+          }
+        }
+      }
+      return eventContracts;
+    } catch (err) {
+      console.error("Error getting attack events:", err);
+      return null;
+    }
+  }, [eventsApi, chain, eventFactoryAddressLabel, eventFactoryContractLabel]);
+
   const getAttackEvents =
     useCallback(async (): Promise<Array<Event> | null> => {
       try {
@@ -428,6 +472,7 @@ const useMultiBaasWithThirdweb = (): MultiBaasHook => {
     getBattle,
     getScanCount,
     getMilestoneData,
+    getAllNFTContract,
     getAttackEvents,
     getBattleStartedEvents,
     getBattleEndedEvents,

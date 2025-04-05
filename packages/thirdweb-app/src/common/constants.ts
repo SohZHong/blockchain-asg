@@ -14,7 +14,7 @@ const appUrl = "https://example.com";
 const ownerAddress = "0x42d0c62B46372491F1bb7C494c43A8469EEd5224";
 
 // Contract for match making
-const managerAddress = "0x65F5D6d678dE105e2AB1F28F4433766d757E5573";
+const managerAddress = "0x01d6Fd3d96d715B04932A21868C3b0c97C7aabc2";
 const nftAddress = "0xc61BF2E3cD2E9C25619aAb85f516E7160f4e31c0";
 
 // Contract for organiser management

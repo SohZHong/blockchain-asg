@@ -29,8 +29,13 @@ contract MatchManager {
   event BattleStarted(
     uint256 battleId,
     address indexed player1,
-    address indexed player2
+    address indexed player2,
+    uint256 player1MinDmg,
+    uint256 player1MaxDmg,
+    uint256 player2MinDmg,
+    uint256 player2MaxDmg
   );
+
   event BattleEnded(uint256 battleId, address indexed winner);
 
   function startBattle(
@@ -48,27 +53,35 @@ contract MatchManager {
       msg.sender,
       true
     );
-    emit BattleStarted(battleCounter, msg.sender, _opponent);
+    emit BattleStarted(
+      battleCounter,
+      msg.sender,
+      _opponent,
+      _player1MinDmg,
+      _player1MaxDmg,
+      _player2MinDmg,
+      _player2MaxDmg
+    );
   }
 
-// not supported on celo l2
-//   function getRandom() internal view returns (uint256) {
-//     if (block.chainid == 31337) {
-//       // Hardhat local testnet
-//       return
-//         uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao)));
-//     } else {
-//       // Actual Celo implementation
-//       return
-//         uint256(
-//           IRandom(
-//             IRegistry(0x000000000000000000000000000000000000ce10).getAddressFor(
-//               keccak256(abi.encodePacked('Random'))
-//             )
-//           ).random()
-//         );
-//     }
-//   }
+  // not supported on celo l2
+  //   function getRandom() internal view returns (uint256) {
+  //     if (block.chainid == 31337) {
+  //       // Hardhat local testnet
+  //       return
+  //         uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao)));
+  //     } else {
+  //       // Actual Celo implementation
+  //       return
+  //         uint256(
+  //           IRandom(
+  //             IRegistry(0x000000000000000000000000000000000000ce10).getAddressFor(
+  //               keccak256(abi.encodePacked('Random'))
+  //             )
+  //           ).random()
+  //         );
+  //     }
+  //   }
 
   function attack(uint256 _battleId, uint256 attacker_damage) external {
     Battle storage battle = battles[_battleId];

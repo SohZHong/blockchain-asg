@@ -1,4 +1,6 @@
 {
-  "EventModule#EventFactory": "0x39cf945936aC330A2BAC8581214f8C70a63E66A5",
-  "EventModule#EventImplementation": "0x4A04CC54f7B6731a295677d41f436b34041d05B9"
+  "OrganiserModule#OrganizerToken": "0x8a608cc6b060B865EF35183d0e39C24c5Fc4a731",
+  "EventModule#EventFactory": "0x2DcC812eB80AE506DfB155c193f74f9cf26E6109",
+  "EventModule#EventImplementation": "0x1e7fcde51aAA66226846976aC660D495B1f08C8B",
+  "MatchManagerModule#MatchManager": "0x65F5D6d678dE105e2AB1F28F4433766d757E5573"
 }

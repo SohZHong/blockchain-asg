@@ -14,13 +14,13 @@ const appUrl = "https://example.com";
 const ownerAddress = "0x42d0c62B46372491F1bb7C494c43A8469EEd5224";
 
 // Contract for match making
-const managerAddress = "0xe0dBc74bB3795f69b763629752c27DF2e58d6f58";
+const managerAddress = "0x65F5D6d678dE105e2AB1F28F4433766d757E5573";
 const nftAddress = "0xc61BF2E3cD2E9C25619aAb85f516E7160f4e31c0";
 
 // Contract for organiser management
-const organiserAddress = "0xfb8672FDF496B66FB81b43B1b1cF1938CA7fb71e";
+const organiserAddress = "0x8a608cc6b060B865EF35183d0e39C24c5Fc4a731";
 // Contract for event factory
-const eventFactoryAddress = "0x39cf945936aC330A2BAC8581214f8C70a63E66A5";
+const eventFactoryAddress = "0x2DcC812eB80AE506DfB155c193f74f9cf26E6109";
 
 export {
   chain,

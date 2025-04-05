@@ -335,6 +335,12 @@
       },
       {
         "indexed": false,
+        "internalType": "address",
+        "name": "scannedPerson",
+        "type": "address"
+      },
+      {
+        "indexed": false,
         "internalType": "uint256",
         "name": "newScanCount",
         "type": "uint256"
@@ -487,6 +493,19 @@
         "internalType": "address",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getMilestones",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
       }
     ],
     "stateMutability": "view",
@@ -680,7 +699,13 @@
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "scannedPerson",
+        "type": "address"
+      }
+    ],
     "name": "recordScan",
     "outputs": [],
     "stateMutability": "nonpayable",

@@ -75,6 +75,30 @@
         "internalType": "address",
         "name": "player2",
         "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "player1MinDmg",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "player1MaxDmg",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "player2MinDmg",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "player2MaxDmg",
+        "type": "uint256"
       }
     ],
     "name": "BattleStarted",
@@ -85,6 +109,11 @@
       {
         "internalType": "uint256",
         "name": "_battleId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "attacker_damage",
         "type": "uint256"
       }
     ],

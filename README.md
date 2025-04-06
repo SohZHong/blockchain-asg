@@ -68,13 +68,22 @@ One Liner for our project
 
 ## How Multibaas is Used
 
-MultiBaas serves as the read-layer integration for the project, acting as the intermediary for indexing contract events and handling selected real-time triggers. All contracts are deployed and verified via **Hardhat**, and then linked within the MultiBaas UI and SDK. The platform is not used for any write operations as all writes are handled separately (e.g., via Thirdweb Engine and signed session keys).
+MultiBaas serves as both the read and write integration layer for the project, acting as the intermediary for:
+
+- Indexing and querying on-chain contract events
+- Executing contract write operations such as marketplace listings
+- Running custom event queries for filtered real-time data
+
+All contracts are deployed and verified using **Hardhat**, then registered in the **MultiBaas UI Console** with assigned aliases and linked ABIs. This dynamic linking allows the SDK to interact with any deployed contract without hardcoding addresses.
+
+While some transactions are still executed via Thirdweb Engine (e.g., for gasless flows using session keys), MultiBaas handles a majority of smart contract interaction logic.
 
 Main Usages are:
 
-- Contract Read Operations through SDK
+- Contract Read, Write Operations through SDK
 - Frontend development with CORS origins
 - Event indexing
+- Event Queries with Filtering
 - Webhook
 
 This project involves the following smart contracts:
@@ -128,6 +137,75 @@ const getMilestoneData = useCallback(
   [callContractFunction, eventImplementationContractLabel]
 );
 ```
+
+### Contract Write Operations
+
+**Purpose**: Allow us to execute write transactions to any deployed contract by specifying the function name, arguments, and sender address without manually encoding data
+
+#### Example Usage: Listing NFTs to marketplace
+
+```typescript
+const payload: MultiBaas.PostMethodArgs = {
+  args: [listing.nftAddress, listing.tokenId, listing.price],
+  from: account.address,
+};
+
+const resp = await contractsApi.callContractFunction(
+  chain,
+  deployedAddressOrAlias,
+  contractLabel,
+  'listBeast',
+  payload
+);
+```
+
+#### Example Usage: Buying an NFT from marketplace
+
+```typescript
+const payload: MultiBaas.PostMethodArgs = {
+  args: [listingId],
+  from: account.address,
+  value: totalAmount.toString(),
+};
+
+const resp = await contractsApi.callContractFunction(
+  chain,
+  deployedAddressOrAlias,
+  contractLabel,
+  'buyBeast',
+  payload
+);
+```
+
+### Event Queries API
+
+**Purpose**: Allow us to query emitted events with powerful filters and custom logic, replacing the need to manually scan on-chain logs or maintain separate indexers
+
+For example, after calling `getActiveBeastListings`, we fetch matching events for those listings:
+
+```typescript
+const response = await contractsApi.callContractFunction(
+  chain,
+  deployedAddressOrAlias,
+  contractLabel,
+  'getActiveBeastListings',
+  payload
+);
+const activeListingId: any = response.data.result;
+console.log('Function call result:\n', activeListingId.output);
+
+const response2 = await eventQueriesApi.executeArbitraryEventQuery(
+  requestBody,
+  0,
+  50
+);
+const activeListing: any = response2.data.result;
+```
+
+#### Benefits:
+
+- Custom filtering logic (e.g., by wallet, timestamp, event params)
+- Combines with contract calls to enrich frontend UX
 
 ### Event Indexing
 
@@ -480,11 +558,11 @@ Had to reach out via both live support chat and in-person at Curvegrid’s booth
 
 #### Clear Separation of Read vs Write Flows
 
-Used MultiBaas exclusively for read-only, event indexing, and webhook-based triggers, while reserving Thirdweb Engine for write operations. This split created a clean and secure architecture.
+Originally used MultiBaas exclusively for read-only operations and event indexing, with Thirdweb Engine handling write transactions. As the project matured, MultiBaas was extended to handle specific write operations (e.g., marketplace listing), allowing for greater flexibility and better contract-level control.
 
-#### Powerful Event Indexing Capabilities
+#### Powerful Event Indexing & Querying
 
-Successfully used MultiBaas to track emitted events like `EventCreated`, `Attack`, `Register`, and `ListingCreated` for passive data retrieval.
+Used MultiBaas to track emitted events like `EventCreated`, `Attack`, `ParticipantRegistered`. Additionally, leveraged Arbitrary Event Queries API to dynamically query and filter indexed event logs.
 
 #### Scalable Webhook Architecture
 

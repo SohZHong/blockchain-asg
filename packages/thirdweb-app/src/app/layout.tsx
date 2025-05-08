@@ -17,9 +17,9 @@ const darkMystic = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "thirdweb SDK + Next starter",
+  title: "Mystic Kaizer",
   description:
-    "Starter template for using thirdweb SDK with Next.js App router",
+    "Mystic Kaizer is a unique social GamFi DApp where you participate events, connect with people and fight your friends with the NFTs you own!",
 };
 
 export default function RootLayout({

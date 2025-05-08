@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ThirdWebConnectButton from "../ThirdWebConnectButton";
-import LaunchButton from "../LaunchButton";
+import LaunchButton from "@/components/LaunchButton";
 import { useThirdWeb } from "@/hooks/useThirdWeb";
 import { TransactionButton } from "thirdweb/react";
 import { addSessionKey } from "thirdweb/extensions/erc4337";

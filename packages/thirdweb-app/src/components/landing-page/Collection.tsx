@@ -1,5 +1,5 @@
 "use client";
-import { Reveal } from "../reveal";
+import { Reveal } from "@/components/reveal";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import Link from "next/link";

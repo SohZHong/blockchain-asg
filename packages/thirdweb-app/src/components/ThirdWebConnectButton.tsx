@@ -3,7 +3,7 @@ import { ConnectButton } from "thirdweb/react";
 import { useThirdWeb } from "@/hooks/useThirdWeb";
 
 export default function ThirdWebConnectButton() {
-  const { client, appMetadata, accountAbstraction } = useThirdWeb();
+    const { client, appMetadata, accountAbstraction } = useThirdWeb();
   return (
     <React.Fragment>
       <ConnectButton

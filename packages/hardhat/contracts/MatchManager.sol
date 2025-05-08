@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.24;
 
-import '@celo/contracts/identity/interfaces/IRandom.sol';
-import '@celo/contracts/common/interfaces/IRegistry.sol';
-
 contract MatchManager {
   struct Player {
     address playerAddress;
@@ -54,23 +51,25 @@ contract MatchManager {
     emit BattleStarted(battleCounter, msg.sender, _opponent);
   }
 
-  function getRandom() internal view returns (uint256) {
-    if (block.chainid == 31337) {
-      // Hardhat local testnet
-      return
-        uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao)));
-    } else {
-      // Actual Celo implementation
-      return
-        uint256(
-          IRandom(
-            IRegistry(0x000000000000000000000000000000000000ce10).getAddressFor(
-              keccak256(abi.encodePacked('Random'))
-            )
-          ).random()
-        );
-    }
-  }
+
+
+  // function getRandom() internal view returns (uint256) {
+  //   if (block.chainid == 31337) {
+  //     // Hardhat local testnet
+  //     return
+  //       uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao)));
+  //   } else {
+  //     // Actual Celo implementation
+  //     return
+  //       uint256(
+  //         IRandom(
+  //           IRegistry(0x000000000000000000000000000000000000ce10).getAddressFor(
+  //             keccak256(abi.encodePacked('Random'))
+  //           )
+  //         ).random()
+  //       );
+  //   }
+  // }
 
   function attack(uint256 _battleId) external {
     Battle storage battle = battles[_battleId];

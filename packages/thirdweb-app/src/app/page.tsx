@@ -24,88 +24,105 @@ import { useThirdWeb } from "@/hooks/useThirdWeb";
 import { TransactionButton } from "thirdweb/react";
 import Link from "next/link";
 import { Spinner } from "@/components/Spinner";
-
+import Navigation from "@/components/landing-page/Navigation";
+import Hero from "@/components/landing-page/Hero";
+import About from "@/components/landing-page/About";
+import Story from "@/components/landing-page/Story";
+import Roadmap from "@/components/landing-page/Roadmap";
+import Rarity from "@/components/landing-page/Rarity";
+import Collection from "@/components/landing-page/Collection";
+import Footer from "@/components/landing-page/Footer";
 export default function Home() {
-  const FormSchema = z
-    .object({
-      opponent: z
-        .string()
-        .startsWith("0x", { message: "Address must start with 0x" })
-        .regex(/^0x[a-fA-F0-9]{40}$/, {
-          message: "Invalid Ethereum address",
-        }),
+  
+  // const FormSchema = z
+  //   .object({
+  //     opponent: z
+  //       .string()
+  //       .startsWith("0x", { message: "Address must start with 0x" })
+  //       .regex(/^0x[a-fA-F0-9]{40}$/, {
+  //         message: "Invalid Ethereum address",
+  //       }),
 
-      minDmg: z.coerce
-        .number()
-        .min(1, { message: "Minimum Damage cannot be negative" }),
-      maxDmg: z.coerce
-        .number()
-        .min(1, { message: "Maximum Damage cannot be negative" }),
-    })
-    .refine((data) => data.minDmg <= data.maxDmg, {
-      message: "minDmg should not be greater than maxDmg",
-      path: ["minDmg"], // This will attach the error to the minDmg field
-    });
+  //     minDmg: z.coerce
+  //       .number()
+  //       .min(1, { message: "Minimum Damage cannot be negative" }),
+  //     maxDmg: z.coerce
+  //       .number()
+  //       .min(1, { message: "Maximum Damage cannot be negative" }),
+  //   })
+  //   .refine((data) => data.minDmg <= data.maxDmg, {
+  //     message: "minDmg should not be greater than maxDmg",
+  //     path: ["minDmg"], // This will attach the error to the minDmg field
+  //   });
 
-  const { account, smartWallet, sessionKeyOptions } = useThirdWeb();
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
-    defaultValues: {
-      opponent: "0x",
-      minDmg: 0,
-      maxDmg: 0,
-    },
-  });
+  // const { account, smartWallet, sessionKeyOptions } = useThirdWeb();
+  // const form = useForm<z.infer<typeof FormSchema>>({
+  //   resolver: zodResolver(FormSchema),
+  //   defaultValues: {
+  //     opponent: "0x",
+  //     minDmg: 0,
+  //     maxDmg: 0,
+  //   },
+  // });
 
-  const onSubmit = async (data: z.infer<typeof FormSchema>) => {
-    try {
-      const response = await fetch("/api/start-battle", {
-        method: "POST",
-        body: JSON.stringify({
-          address: account?.address as string,
-          opponent: data.opponent,
-          player1MinDmg: 1,
-          player1MaxDmg: 3,
-          player2MinDmg: data.minDmg,
-          player2MaxDmg: data.maxDmg,
-        }),
-      });
-      const res = await response.json();
-      if (res.success) {
-        toast("Battle Started", {
-          description: JSON.stringify(res, (key, value) =>
-            typeof value === "bigint" ? value.toString() : value
-          ),
-          action: {
-            label: "Close",
-            onClick: () => console.log("Closed"),
-          },
-        });
-      } else {
-        toast("Error Starting Battle", {
-          action: {
-            label: "Close",
-            onClick: () => console.log("Closed"),
-          },
-        });
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  // const onSubmit = async (data: z.infer<typeof FormSchema>) => {
+  //   try {
+  //     const response = await fetch("/api/start-battle", {
+  //       method: "POST",
+  //       body: JSON.stringify({
+  //         address: account?.address as string,
+  //         opponent: data.opponent,
+  //         player1MinDmg: 1,
+  //         player1MaxDmg: 3,
+  //         player2MinDmg: data.minDmg,
+  //         player2MaxDmg: data.maxDmg,
+  //       }),
+  //     });
+  //     const res = await response.json();
+  //     if (res.success) {
+  //       toast("Battle Started", {
+  //         description: JSON.stringify(res, (key, value) =>
+  //           typeof value === "bigint" ? value.toString() : value
+  //         ),
+  //         action: {
+  //           label: "Close",
+  //           onClick: () => console.log("Closed"),
+  //         },
+  //       });
+  //     } else {
+  //       toast("Error Starting Battle", {
+  //         action: {
+  //           label: "Close",
+  //           onClick: () => console.log("Closed"),
+  //         },
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
 
-  const getSigners = async () => {
-    if (!smartWallet) return;
-    const res = await getAllActiveSigners({
-      contract: smartWallet,
-    });
-    console.log(res);
-  };
+  // const getSigners = async () => {
+  //   if (!smartWallet) return;
+  //   const res = await getAllActiveSigners({
+  //     contract: smartWallet,
+  //   });
+  //   console.log(res);
+  // };
 
   return (
-    <main className="p-6 min-h-[100vh] container max-w-screen-lg mx-auto">
+    <div>
+        <Navigation />
+        <Hero />
+        <About />
+        <Story />
+        <Collection />
+        <Rarity />
+        <Roadmap />
+        <Footer />
+
       <div className="w-full">
-        <div className="flex justify-between items-center mb-6">
+        {/* <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold">Home</h1>
           <ThirdWebConnectButton />
           {account && <Button onClick={() => getSigners()}>Signers</Button>}
@@ -141,8 +158,8 @@ export default function Home() {
               Waiting for session key configuration...
             </p>
           )}
-        </div>
-        {account && (
+        </div> */}
+        {/* {account && (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
               <FormField
@@ -208,13 +225,13 @@ export default function Home() {
               <Button type="submit">Submit</Button>
             </form>
           </Form>
-        )}
+        )} */}
       </div>
-      <nav className="flex flex-col items-center justify-center">
+      {/* <nav className="flex flex-col items-center justify-center">
         <Link href={"/organiser"}>Organiser Page</Link>
         <Link href={"/event/create"}>Event Creation Page</Link>
         <Link href={"/event"}>Event Listings Page</Link>
-      </nav>
-    </main>
+      </nav> */}
+    </div>
   );
 }

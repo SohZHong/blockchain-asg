@@ -20,23 +20,6 @@ export default function Navigation() {
   const { account, smartWallet, sessionKeyOptions } = useThirdWeb();
   console.log(sessionKeyOptions);
 
-//   const handleConnect = async () => {
-//     try {
-//       await connect({
-//         connector: "injected",
-//       });
-//     } catch (error) {
-//       console.error("Failed to connect wallet:", error);
-//     }
-//   };
-
-//   const handleDisconnect = async () => {
-//     try {
-//       await disconnect();
-//     } catch (error) {
-//       console.error("Failed to disconnect wallet:", error);
-//     }
-//   };
 
   return (
     <nav className="fixed w-full bg-transparent z-50 font-dark-mystic">

@@ -10,6 +10,7 @@ import { TransactionButton } from "thirdweb/react";
 import { addSessionKey } from "thirdweb/extensions/erc4337";
 import { toast } from "sonner";
 import { Spinner } from "../Spinner";
+import { FaKey } from "react-icons/fa";
 // import { useConnect, useDisconnect, useAddress } from "@thirdweb-dev/react";
 
 export default function Navigation() {
@@ -40,6 +41,7 @@ export default function Navigation() {
              <ThirdWebConnectButton />
              {sessionKeyOptions ? (
             <TransactionButton
+              className="text-white min-w-10"
               transaction={() => addSessionKey(sessionKeyOptions)}
               onTransactionConfirmed={(tx) => {
                 toast("Session Key Added", {
@@ -62,12 +64,12 @@ export default function Navigation() {
                 });
               }}
             >
-              Add Session Key
+              <FaKey />
             </TransactionButton>
           ) : (
             <p className="text-gray-500">
               <Spinner />
-              Waiting for session key configuration...
+              <span className="text-white text-sm">Waiting for session key configuration...</span>
             </p>
           )}
         </div>

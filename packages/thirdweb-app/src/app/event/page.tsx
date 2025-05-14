@@ -15,6 +15,7 @@ import useMultiBaasWithThirdweb from "@/hooks/useMultiBaas";
 import { Spinner } from "@/components/Spinner";
 import Link from "next/link";
 import { Event, EventField } from "@curvegrid/multibaas-sdk";
+import Navbar from "@/components/custom/navbar";
 
 export default function EventListingsPage() {
   const { getOrganisedEvents } = useMultiBaasWithThirdweb();
@@ -59,10 +60,7 @@ export default function EventListingsPage() {
   return (
     <main className="p-6 min-h-[100vh] container max-w-screen-lg mx-auto">
       <div className="w-full">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold">Event Listings</h1>
-          <ThirdWebConnectButton />
-        </div>
+        <Navbar />
 
         {loading ? (
           <Spinner size={"medium"} />

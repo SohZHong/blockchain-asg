@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-// import Navbar from "@/components/custom/navbar";
+import Navbar from "@/components/custom/navbar";
 import { marketplaceService, ListingItem } from "@/services/marketplaceService";
 import { useThirdWeb } from "@/hooks/useThirdWeb";
+import Image from "next/image";
 
 export default function Marketplace() {
   const { account, client } = useThirdWeb();
@@ -22,6 +23,15 @@ export default function Marketplace() {
   });
   const [isBuying, setIsBuying] = useState(false);
   const [buyError, setBuyError] = useState<string | null>(null);
+
+  // Collection stats (dummy data)
+  const collectionStats = {
+    totalVolume: "2,100 A-CELO",
+    floorPrice: "1,890 A-CELO",
+    bestOffer: "500 A-CELO",
+    listed: "10%",
+    owners: "26 (43%)"
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -138,11 +148,76 @@ export default function Marketplace() {
   };
 
   return (
-    <main className="min-h-screen w-screen bg-[url('/dapp/marketplace-bg.png')] bg-cover bg-center flex items-center justify-center">
-      {/* <Navbar /> */}
+    <main className="min-h-screen w-screen bg-black bg-cover bg-center flex flex-col items-center justify-center">
+      <Navbar />
+      <div className="w-full bg-gradient-to-b from-zinc-900 to-black">
+          <div className="relative w-full h-[500px]">
+            {/* Banner Image */}
+            <div className="absolute inset-0">
+              <Image
+                src="/marketplace/marketplace-bg2.png"
+                alt="Collection Banner"
+                fill
+                className="object-cover object-center"
+                priority
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/80" />
+            </div>
+
+            {/* Collection Info */}
+            <div className="absolute bottom-0 left-0 right-0 p-8">
+              <div className="flex items-start gap-6">
+                {/* Collection Avatar */}
+                <div className="w-24 h-24 rounded-xl overflow-hidden border-2 border-purple-500">
+                  <Image
+                    src="/favicon.png"
+                    alt="Collection Avatar"
+                    width={96}
+                    height={96}
+                    className="object-cover"
+                  />
+                </div>
+
+                {/* Collection Details */}
+                <div className="flex-1">
+                  <h1 className="text-4xl font-bold text-white mb-2 font-dark-mystic">Mystic Kaizer Collection</h1>
+                  <p className="text-gray-300 mb-4 max-w-2xl">
+                    Discover the mystical world of Mystic Legends, where ancient creatures come to life as unique digital collectibles. Each beast carries its own story and power.
+                  </p>
+                  
+                  {/* Collection Stats */}
+                  <div className="flex gap-8 text-white">
+                    <div>
+                      <p className="text-xl font-bold">{collectionStats.totalVolume}</p>
+                      <p className="text-sm text-gray-400">Total volume</p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold">{collectionStats.floorPrice}</p>
+                      <p className="text-sm text-gray-400">Floor price</p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold">{collectionStats.bestOffer}</p>
+                      <p className="text-sm text-gray-400">Best offer</p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold">{collectionStats.listed}</p>
+                      <p className="text-sm text-gray-400">Listed</p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold">{collectionStats.owners}</p>
+                      <p className="text-sm text-gray-400">Owners</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       <div className="py-10 w-full max-w-screen-lg p-6 mt-10 flex flex-col">
+      
+
         <div className="flex justify-between mb-12">
-          <h1 className="text-4xl font-extrabold text-white">
+          <h1 className="text-4xl font-extrabold text-white font-dark-mystic">
             Marketplace
           </h1>
           <Button 

@@ -63,11 +63,11 @@ function Sidebar({
     >
       {/* Sidebar close button for mobile */}
       <button
-        className="md:hidden absolute top-4 right-4 text-white text-2xl focus:outline-dashed"
+        className="md:hidden absolute top-4 right-4 text-white text-2xl"
         onClick={() => setSidebarOpen(false)}
         aria-label="Close sidebar"
       >
-        ×
+        x
       </button>
       <div className="mb-2">
         <Image src="/landing-page/white-title.svg" alt="Mystic Kaizer" width={300} height={100} />
@@ -78,8 +78,8 @@ function Sidebar({
           <Image
             src="/profile.png"
             alt="Player Avatar"
-            width={64}
-            height={64}
+            width={128}
+            height={128}
             className="rounded-full border-2 border-purple-500"
           />
         </div>
@@ -114,11 +114,11 @@ function Sidebar({
         </div>
       </div>
       {/* Navigation Menu */}
-      <nav className="flex flex-col gap-2 mt-6 font-dark-mystic text-lg">
+      <nav className="flex flex-col gap-2 mt-6 font-dark-mystic text-xl">
         {[
-          { id: "home", label: "HOME" },
-          { id: "beasts", label: "MY BEASTS" },
-          { id: "shop", label: "MARKETPLACE" },
+          { id: "home", label: "Home" },
+          { id: "beasts", label: "My Beasts" },
+          { id: "shop", label: "Marketplace" },
         ].map((item) => (
           <button
             key={item.id}
@@ -147,7 +147,7 @@ function ActivityCard({ activity }: { activity: Activity }) {
     <Card
       onClick={activity.onClick}
       tabIndex={0}
-      className={`relative overflow-hidden group cursor-pointer h-56 md:h-72 w-full flex flex-col justify-end ${activity.color} transition-transform hover:scale-105 hover:shadow-2xl border-none focus:outline-dashed`}
+      className={`relative overflow-hidden group cursor-pointer h-56 md:h-72 w-full flex flex-col justify-end ${activity.color} transition-transform hover:scale-105 hover:shadow-2xl border-none`}
       style={{ minHeight: "14rem" }}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") activity.onClick();
@@ -293,7 +293,7 @@ export default function Dapp() {
       {/* Header */}
       <header className="w-full bg-black/60 backdrop-blur-md shadow-lg z-10 px-0 md:px-6 py-4 flex items-center justify-between relative">
         <button
-          className="md:hidden text-white text-3xl ml-4 focus:outline-dashed"
+          className="md:hidden text-white text-3xl ml-4"
           onClick={() => setSidebarOpen(true)}
           aria-label="Open sidebar"
         >

@@ -1,8 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import ThirdWebConnectButton from "../ThirdWebConnectButton";
 import LaunchButton from "@/components/LaunchButton";
 import { useThirdWeb } from "@/hooks/useThirdWeb";
@@ -11,13 +9,8 @@ import { addSessionKey } from "thirdweb/extensions/erc4337";
 import { toast } from "sonner";
 import { Spinner } from "../Spinner";
 import { FaKey } from "react-icons/fa";
-// import { useConnect, useDisconnect, useAddress } from "@thirdweb-dev/react";
 
 export default function Navigation() {
-//   const connect = useConnect();
-//   const disconnect = useDisconnect();
-//   const address = useAddress();
-  const router = useRouter();
   const { account, smartWallet, sessionKeyOptions } = useThirdWeb();
   console.log(sessionKeyOptions);
 
@@ -37,11 +30,11 @@ export default function Navigation() {
           <LaunchButton />
         </div>
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center text-2xl text-white font-inter">
+        <div className="hidden md:flex flex-col items-center text-2xl text-white font-inter">
              <ThirdWebConnectButton />
              {sessionKeyOptions ? (
             <TransactionButton
-              className="text-white min-w-10"
+              className="w-8 h-8 min-w-[0px] !important text-white bg-black flex items-center justify-center p-0"
               transaction={() => addSessionKey(sessionKeyOptions)}
               onTransactionConfirmed={(tx) => {
                 toast("Session Key Added", {

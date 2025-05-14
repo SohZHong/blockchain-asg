@@ -7,6 +7,8 @@ import { marketplaceService, ListingItem } from "@/services/marketplaceService";
 import { useThirdWeb } from "@/hooks/useThirdWeb";
 import Image from "next/image";
 
+const RARITIES = ["Common", "Rare", "Epic", "Mythic"];
+
 export default function Marketplace() {
   const { account, client } = useThirdWeb();
   const [items, setItems] = useState<ListingItem[]>([]);
@@ -24,6 +26,11 @@ export default function Marketplace() {
   const [isBuying, setIsBuying] = useState(false);
   const [buyError, setBuyError] = useState<string | null>(null);
 
+  // Filter state
+  const [priceRange, setPriceRange] = useState([0, 100]);
+  const [selectedRarities, setSelectedRarities] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState("price-asc");
+
   // Collection stats (dummy data)
   const collectionStats = {
     totalVolume: "2,100 A-CELO",
@@ -40,6 +47,25 @@ export default function Marketplace() {
     };
     fetchData();
   }, []);
+
+  // Filtering and sorting
+  const filteredItems = items
+    .filter((item) => {
+      const price = Number(item.price) / 10 ** 18;
+      const rarity = item.metadata?.rarity ?? "Common";
+      return (
+        price >= priceRange[0] &&
+        price <= priceRange[1] &&
+        (selectedRarities.length === 0 || selectedRarities.includes(rarity))
+      );
+    })
+    .sort((a, b) => {
+      const priceA = Number(a.price);
+      const priceB = Number(b.price);
+      if (sortBy === "price-asc") return priceA - priceB;
+      if (sortBy === "price-desc") return priceB - priceA;
+      return 0;
+    });
 
   const handleViewDetails = (item: ListingItem) => {
     setSelectedItem(item);
@@ -151,132 +177,164 @@ export default function Marketplace() {
     <main className="min-h-screen w-screen bg-black bg-cover bg-center flex flex-col items-center justify-center">
       <Navbar />
       <div className="w-full bg-gradient-to-b from-zinc-900 to-black">
-          <div className="relative w-full h-[500px]">
-            {/* Banner Image */}
-            <div className="absolute inset-0">
-              <Image
-                src="/marketplace/marketplace-bg2.png"
-                alt="Collection Banner"
-                fill
-                className="object-cover object-center"
-                priority
-              />
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/80" />
-            </div>
-
-            {/* Collection Info */}
-            <div className="absolute bottom-0 left-0 right-0 p-8">
-              <div className="flex items-start gap-6">
-                {/* Collection Avatar */}
-                <div className="w-24 h-24 rounded-xl overflow-hidden border-2 border-purple-500">
-                  <Image
-                    src="/favicon.png"
-                    alt="Collection Avatar"
-                    width={96}
-                    height={96}
-                    className="object-cover"
-                  />
-                </div>
-
-                {/* Collection Details */}
-                <div className="flex-1">
-                  <h1 className="text-4xl font-bold text-white mb-2 font-dark-mystic">Mystic Kaizer Collection</h1>
-                  <p className="text-gray-300 mb-4 max-w-2xl">
-                    Discover the mystical world of Mystic Legends, where ancient creatures come to life as unique digital collectibles. Each beast carries its own story and power.
-                  </p>
-                  
-                  {/* Collection Stats */}
-                  <div className="flex gap-8 text-white">
-                    <div>
-                      <p className="text-xl font-bold">{collectionStats.totalVolume}</p>
-                      <p className="text-sm text-gray-400">Total volume</p>
-                    </div>
-                    <div>
-                      <p className="text-xl font-bold">{collectionStats.floorPrice}</p>
-                      <p className="text-sm text-gray-400">Floor price</p>
-                    </div>
-                    <div>
-                      <p className="text-xl font-bold">{collectionStats.bestOffer}</p>
-                      <p className="text-sm text-gray-400">Best offer</p>
-                    </div>
-                    <div>
-                      <p className="text-xl font-bold">{collectionStats.listed}</p>
-                      <p className="text-sm text-gray-400">Listed</p>
-                    </div>
-                    <div>
-                      <p className="text-xl font-bold">{collectionStats.owners}</p>
-                      <p className="text-sm text-gray-400">Owners</p>
-                    </div>
+        <div className="relative w-full h-[500px]">
+          {/* Banner Image */}
+          <div className="absolute inset-0">
+            <Image
+              src="/marketplace/marketplace-bg2.png"
+              alt="Collection Banner"
+              fill
+              className="object-cover object-center"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/80" />
+          </div>
+          {/* Collection Info */}
+          <div className="absolute bottom-0 left-0 right-0 p-8">
+            <div className="flex items-start gap-6">
+              {/* Collection Avatar */}
+              <div className="w-24 h-24 rounded-xl overflow-hidden border-2 border-purple-500">
+                <Image
+                  src="/favicon.png"
+                  alt="Collection Avatar"
+                  width={96}
+                  height={96}
+                  className="object-cover"
+                />
+              </div>
+              {/* Collection Details */}
+              <div className="flex-1">
+                <h1 className="text-4xl font-bold text-white mb-2 font-dark-mystic">Mystic Kaizer Collection</h1>
+                <p className="text-gray-300 mb-4 max-w-2xl">
+                  Discover the mystical world of Mystic Legends, where ancient creatures come to life as unique digital collectibles. Each beast carries its own story and power.
+                </p>
+                {/* Collection Stats */}
+                <div className="flex gap-8 text-white">
+                  <div>
+                    <p className="text-xl font-bold">{collectionStats.totalVolume}</p>
+                    <p className="text-sm text-gray-400">Total volume</p>
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold">{collectionStats.floorPrice}</p>
+                    <p className="text-sm text-gray-400">Floor price</p>
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold">{collectionStats.bestOffer}</p>
+                    <p className="text-sm text-gray-400">Best offer</p>
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold">{collectionStats.listed}</p>
+                    <p className="text-sm text-gray-400">Listed</p>
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold">{collectionStats.owners}</p>
+                    <p className="text-sm text-gray-400">Owners</p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      <div className="py-10 w-full max-w-screen-lg p-6 mt-10 flex flex-col">
-      
-
-        <div className="flex justify-between mb-12">
-          <h1 className="text-4xl font-extrabold text-white font-dark-mystic">
-            Marketplace
-          </h1>
-          <Button 
-            className="bg-green-600 text-white hover:bg-green-700"
-            onClick={handleAddListing}
-          >
-            Add Listing
-          </Button>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {items.map((item) => (
-            <div
-              key={item.listingid}
-              className="border rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white flex flex-col items-center"
-            >
-              <img
-                src={item.metadata?.image}
-                alt={item.metadata?.name}
-                className="w-40 h-40 object-contain mb-4 rounded-md"
-              />
-              <h2 className="text-xl font-bold text-gray-700 mb-2">
-                {item.metadata?.name}
-              </h2>
-              <p className="text-gray-500 text-sm mb-4 text-center">
-                {item.metadata?.description}
-              </p>
-              <p className="text-gray-800 font-semibold text-lg mb-6">
-                Price: {Number(item.price) / 10 ** 18} A-CELO
-              </p>
-              <div className="flex gap-4">
-                <Button
-                  className="bg-gray-600 text-white hover:bg-gray-700 transition-colors duration-300"
-                  onClick={() => handleViewDetails(item)}
-                >
-                  View Details
-                </Button>
-                {account && item.seller && typeof item.seller === 'string' && 
-                  account.address.toLowerCase() === item.seller.toLowerCase() ? (
-                  <Button
-                    className="bg-red-600 text-white hover:bg-red-700 transition-colors duration-300"
-                    onClick={() => handleRemoveFromMarket(item.listingid)}
-                    disabled={isRemoving}
-                  >
-                    {isRemoving ? 'Removing...' : 'Remove from Market'}
-                  </Button>
-                ) : (
-                  <Button
-                    className="bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-300"
-                    onClick={() => handleBuy(item.listingid)}
-                    disabled={isBuying}
-                  >
-                    {isBuying ? 'Buying...' : 'Buy Now'}
-                  </Button>
-                )}
+        {/* Filter + Grid Section */}
+        <div className="flex flex-col md:flex-row gap-10 max-w-7xl mx-auto w-full px-4 py-12">
+          {/* Sidebar Filters */}
+          <aside className="w-full md:w-64 mb-8 md:mb-0">
+            <div className="bg-gray-900 rounded-xl p-6 shadow-lg">
+              <h2 className="text-xl font-dark-mystic text-white mb-6">Price Range (Celo)</h2>
+              <div className="flex items-center gap-2 mb-6">
+                <span className="text-white text-sm">0</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={20}
+                  step={0.1}
+                  value={priceRange[1]}
+                  onChange={e => setPriceRange([0, Number(e.target.value)])}
+                  className="w-full accent-yellow-400"
+                />
+                <span className="text-white text-sm">100</span>
               </div>
+              <h2 className="text-xl font-dark-mystic text-white mb-2">Rarity</h2>
+              <div className="flex flex-col gap-2 mb-6">
+                {RARITIES.map(rarity => (
+                  <label key={rarity} className="flex items-center gap-2 text-white">
+                    <input
+                      type="checkbox"
+                      checked={selectedRarities.includes(rarity)}
+                      onChange={() => setSelectedRarities(selectedRarities.includes(rarity)
+                        ? selectedRarities.filter(r => r !== rarity)
+                        : [...selectedRarities, rarity])}
+                      className="accent-yellow-400"
+                    />
+                    {rarity}
+                  </label>
+                ))}
+              </div>
+              <h2 className="text-xl font-dark-mystic text-white mb-2">Sort By</h2>
+              <select
+                className="w-full p-2 rounded bg-gray-800 text-white"
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value)}
+              >
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+              </select>
             </div>
-          ))}
+          </aside>
+          {/* NFT Cards Grid */}
+          <div className="flex-1">
+            <h2 className="text-2xl font-dark-mystic text-white mb-6">LISTED NFTS</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredItems.map((item) => (
+                <div
+                  key={item.listingid}
+                  className="border rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white flex flex-col items-center"
+                >
+                  <img
+                    src={item.metadata?.image}
+                    alt={item.metadata?.name}
+                    className="w-40 h-40 object-contain mb-4 rounded-md"
+                  />
+                  <h2 className="text-xl font-bold text-gray-700 mb-2">
+                    {item.metadata?.name}
+                  </h2>
+                  <p className="text-gray-500 text-sm mb-4 text-center">
+                    {item.metadata?.description}
+                  </p>
+                  <p className="text-gray-800 font-semibold text-lg mb-6">
+                    Price: {Number(item.price) / 10 ** 18} A-CELO
+                  </p>
+                  <div className="flex gap-4">
+                    <Button
+                      className="bg-gray-600 text-white hover:bg-gray-700 transition-colors duration-300"
+                      onClick={() => handleViewDetails(item)}
+                    >
+                      View Details
+                    </Button>
+                    {account && item.seller && typeof item.seller === 'string' && 
+                      account.address.toLowerCase() === item.seller.toLowerCase() ? (
+                      <Button
+                        className="bg-red-600 text-white hover:bg-red-700 transition-colors duration-300"
+                        onClick={() => handleRemoveFromMarket(item.listingid)}
+                        disabled={isRemoving}
+                      >
+                        {isRemoving ? 'Removing...' : 'Remove from Market'}
+                      </Button>
+                    ) : (
+                      <Button
+                        className="bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-300"
+                        onClick={() => handleBuy(item.listingid)}
+                        disabled={isBuying}
+                      >
+                        {isBuying ? 'Buying...' : 'Buy Now'}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-
         {/* Add Listing Modal */}
         {showAddModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">

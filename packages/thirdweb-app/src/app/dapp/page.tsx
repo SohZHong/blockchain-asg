@@ -244,12 +244,12 @@ export default function Dapp() {
       ]
     : [
         {
-          id: "event",
+          id: "events",
           title: "Events",
           subtitle: "Find Events",
           image: "/dapp/event-bg.png",
           color: "bg-amber-700",
-          onClick: () => router.push("/event"),
+          onClick: () => router.push("/events"),
         },
         {
           id: "dapp/battle",

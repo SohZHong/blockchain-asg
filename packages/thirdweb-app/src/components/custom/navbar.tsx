@@ -53,6 +53,14 @@ export default function Navbar() {
           id="navbar-sticky"
         >
           <ul className="flex flex-col p-4 md:p-0 mt-4 font-medium md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 ">
+          <li>
+              <Link
+                href="/dapp"
+                className="block py-2 px-3 text-white rounded md:hover:bg-transparent hover:text-blue-300 md:p-0"
+              >
+                Home
+              </Link>
+            </li>
             <li>
               <Link
                 href="/event"

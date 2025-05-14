@@ -1,7 +1,7 @@
-import { optimismSepolia } from "thirdweb/chains";
+import { celoAlfajoresTestnet } from "thirdweb/chains";
 
 // Chain
-const chain = optimismSepolia;
+const chain = celoAlfajoresTestnet;
 
 // To sponsor gas
 const sponsorGas: boolean = true;

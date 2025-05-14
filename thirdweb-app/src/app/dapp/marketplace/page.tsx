@@ -236,7 +236,7 @@ export default function Marketplace() {
                       disabled={isApproving}
                     />
                     <a
-                      href={`https://sepolia-optimism.etherscan.io/token/${newListing.nftAddress}?a=${newListing.tokenId}`}
+                      href={`https://explorer.celo.org/alfajores/token/${newListing.nftAddress}?a=${newListing.tokenId}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -286,7 +286,7 @@ export default function Marketplace() {
                   <div className="flex items-center gap-2">
                     <p className="font-semibold">{selectedItem.tokenid}</p>
                     <a
-                      href={`https://sepolia-optimism.etherscan.io/nft/${selectedItem.nftaddress}/${selectedItem.tokenid}`}
+                      href={`https://explorer.celo.org/alfajores/nft/${selectedItem.nftaddress}/${selectedItem.tokenid}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -305,7 +305,7 @@ export default function Marketplace() {
                   <div className="flex items-center gap-2">
                     <p className="font-semibold break-all">{selectedItem.seller}</p>
                     <a
-                      href={`https://sepolia-optimism.etherscan.io/address/${selectedItem.seller}`}
+                      href={`https://explorer.celo.org/alfajores/address/${selectedItem.seller}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -320,7 +320,7 @@ export default function Marketplace() {
                   <div className="flex items-center gap-2">
                     <p className="font-semibold break-all">{selectedItem.nftaddress}</p>
                     <a
-                      href={`https://sepolia-optimism.etherscan.io/address/${selectedItem.nftaddress}`}
+                      href={`https://explorer.celo.org/alfajores/address/${selectedItem.nftaddress}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Marketplace is ReentrancyGuard, Ownable {
@@ -34,7 +34,7 @@ contract Marketplace is ReentrancyGuard, Ownable {
     event ListingCanceled(uint256 indexed listingId, uint256 indexed tokenId, address indexed seller);
     event FeePercentageUpdated(uint256 oldFee, uint256 newFee);
 
-    constructor(uint256 _feePercentage) {
+    constructor(uint256 _feePercentage) Ownable(msg.sender) {
         require(_feePercentage <= 1000, "Fee percentage cannot exceed 10%");
         feePercentage = _feePercentage;
     }

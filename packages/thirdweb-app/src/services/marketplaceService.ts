@@ -81,7 +81,8 @@ const requestBody: MultiBaas.EventQuery = {
 };
 
 // Updated marketplace address to the correct one that implements ERC721Receiver
-const MARKETPLACE_ADDRESS = "0x75E4C7832d2849bC99304c0056063319aD1b0E05";
+export const MARKETPLACE_ADDRESS = "0xa52ce5F40f414162B10fA33e8f3230bBA41cAF56";
+export const NFT_CONTRACT_ADDRESS = "0xc61BF2E3cD2E9C25619aAb85f516E7160f4e31c0";
 const CELO_RPC = "https://alfajores-forno.celo-testnet.org";
 const FEE_PERCENTAGE = 250; // 2.5% fee
 
@@ -101,7 +102,6 @@ export interface ListingItem {
 }
 
 export interface NewListing {
-  nftAddress: string;
   tokenId: string;
   price: string;
 }
@@ -150,10 +150,10 @@ const fetchNFTMetadata = async (nftAddress: string, tokenId: number): Promise<NF
 };
 
 export const marketplaceService = {
-  async approveNFT(nftAddress: string, tokenId: string, account: Account, client: ThirdwebClient): Promise<boolean> {
+  async approveNFT(tokenId: string, account: Account, client: ThirdwebClient): Promise<boolean> {
     try {
       const contract = getContract({
-        address: nftAddress,
+        address: NFT_CONTRACT_ADDRESS,
         abi: [
           {
             "inputs": [
@@ -172,109 +172,6 @@ export const marketplaceService = {
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
-          },
-          {
-            "inputs": [
-              {
-                "internalType": "address",
-                "name": "sender",
-                "type": "address"
-              },
-              {
-                "internalType": "uint256",
-                "name": "tokenId",
-                "type": "uint256"
-              },
-              {
-                "internalType": "address",
-                "name": "owner",
-                "type": "address"
-              }
-            ],
-            "name": "ERC721IncorrectOwner",
-            "type": "error"
-          },
-          {
-            "inputs": [
-              {
-                "internalType": "address",
-                "name": "operator",
-                "type": "address"
-              },
-              {
-                "internalType": "uint256",
-                "name": "tokenId",
-                "type": "uint256"
-              }
-            ],
-            "name": "ERC721InsufficientApproval",
-            "type": "error"
-          },
-          {
-            "inputs": [
-              {
-                "internalType": "address",
-                "name": "approver",
-                "type": "address"
-              }
-            ],
-            "name": "ERC721InvalidApprover",
-            "type": "error"
-          },
-          {
-            "inputs": [
-              {
-                "internalType": "address",
-                "name": "operator",
-                "type": "address"
-              }
-            ],
-            "name": "ERC721InvalidOperator",
-            "type": "error"
-          },
-          {
-            "inputs": [
-              {
-                "internalType": "address",
-                "name": "owner",
-                "type": "address"
-              }
-            ],
-            "name": "ERC721InvalidOwner",
-            "type": "error"
-          },
-          {
-            "inputs": [
-              {
-                "internalType": "address",
-                "name": "receiver",
-                "type": "address"
-              }
-            ],
-            "name": "ERC721InvalidReceiver",
-            "type": "error"
-          },
-          {
-            "inputs": [
-              {
-                "internalType": "address",
-                "name": "sender",
-                "type": "address"
-              }
-            ],
-            "name": "ERC721InvalidSender",
-            "type": "error"
-          },
-          {
-            "inputs": [
-              {
-                "internalType": "uint256",
-                "name": "tokenId",
-                "type": "uint256"
-              }
-            ],
-            "name": "ERC721NonexistentToken",
-            "type": "error"
           }
         ],
         client,
@@ -299,96 +196,68 @@ export const marketplaceService = {
     }
   },
 
-  async addListing(listing: NewListing, account: Account, client: ThirdwebClient) {
+  async addListing(listing: NewListing, account: Account, client: ThirdwebClient): Promise<string> {
     try {
       // First approve the marketplace to transfer the NFT
-      await this.approveNFT(listing.nftAddress, listing.tokenId, account, client);
+      await this.approveNFT(listing.tokenId, account, client);
       console.log("Marketplace approved to transfer NFT, proceeding with listing creation");
 
-      // Create the listing using MultiBaas
-      const payload: MultiBaas.PostMethodArgs = {
-        args: [
-          listing.nftAddress,
-          listing.tokenId,
-          listing.price
+      const contract = getContract({
+        address: MARKETPLACE_ADDRESS,
+        abi: [
+          {
+            "inputs": [
+              {
+                "internalType": "address",
+                "name": "nftAddress",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "price",
+                "type": "uint256"
+              }
+            ],
+            "name": "listBeast",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+          }
         ],
-        from: account.address,
-      };
+        client,
+        chain: CELO_ALFAJORES
+      });
 
-      const resp = await contractsApi.callContractFunction(
-        chain,
-        deployedAddressOrAlias,
-        contractLabel,
-        "listBeast",
-        payload
-      );
+      const transaction = prepareContractCall({
+        contract,
+        method: "listBeast",
+        params: [
+          NFT_CONTRACT_ADDRESS,
+          BigInt(listing.tokenId),
+          BigInt(listing.price)
+        ] as const
+      });
 
-      if (resp.data.result.kind === "TransactionToSignResponse" && !resp.data.result.submitted) {
-        // Create a contract instance for the marketplace
-        const contract = getContract({
-          address: MARKETPLACE_ADDRESS,
-          abi: [
-            {
-              "inputs": [
-                {
-                  "internalType": "address",
-                  "name": "nftAddress",
-                  "type": "address"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "tokenId",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "price",
-                  "type": "uint256"
-                }
-              ],
-              "name": "listBeast",
-              "outputs": [],
-              "stateMutability": "nonpayable",
-              "type": "function"
-            }
-          ],
-          client,
-          chain: CELO_ALFAJORES
-        });
+      const tx = await sendTransaction({
+        transaction,
+        account
+      });
 
-        // Prepare and send the transaction
-        const transaction = prepareContractCall({
-          contract,
-          method: "listBeast",
-          params: [
-            listing.nftAddress,
-            BigInt(listing.tokenId),
-            BigInt(listing.price)
-          ] as const
-        });
-
-        const tx = await sendTransaction({
-          transaction,
-          account
-        });
-
-        // Wait for transaction receipt
-        const receipt = await waitForReceipt(tx);
-        console.log("Listing creation transaction receipt:", receipt);
-        return true;
-      }
-
-      throw new Error("Unexpected response from MultiBaas");
+      const receipt = await waitForReceipt(tx);
+      console.log("Listing creation transaction receipt:", receipt);
+      return receipt.transactionHash;
     } catch (error) {
       console.error("Error in addListing:", error);
-      if (isAxiosError(error)) {
-        console.error(`MultiBaas error with status '${error.response?.data?.status}' and message: ${error.response?.data?.message}`);
-      }
       throw error;
     }
   },
 
-  async removeListing(listingId: number, account: Account, client: ThirdwebClient): Promise<boolean> {
+  async removeListing(listingId: number, account: Account, client: ThirdwebClient): Promise<string> {
     try {
       const payload: MultiBaas.PostMethodArgs = {
         args: [listingId],
@@ -441,7 +310,7 @@ export const marketplaceService = {
         // Wait for transaction receipt
         const receipt = await waitForReceipt(tx);
         console.log("Cancel listing transaction receipt:", receipt);
-        return true;
+        return receipt.transactionHash;
       }
 
       throw new Error("Unexpected response from MultiBaas");
@@ -456,46 +325,88 @@ export const marketplaceService = {
 
   async fetchListings(): Promise<ListingItem[]> {
     try {
-      const response = await contractsApi.callContractFunction(
-        chain,
-        deployedAddressOrAlias,
-        contractLabel,
-        "getActiveBeastListings",
-        payload
-      );
-      const activeListingId: any = response.data.result;
-      console.log("Function call result:\n", activeListingId.output);
+      const provider = new ethers.JsonRpcProvider(CELO_RPC);
+      const contract = new ethers.Contract(MARKETPLACE_ADDRESS, [
+        {
+          "inputs": [],
+          "name": "getActiveBeastListings",
+          "outputs": [
+            {
+              "internalType": "uint256[]",
+              "name": "",
+              "type": "uint256[]"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ],
+          "name": "listings",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "listingId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "seller",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "nftAddress",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "price",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bool",
+              "name": "active",
+              "type": "bool"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        }
+      ], provider);
 
-      const response2 = await eventQueriesApi.executeArbitraryEventQuery(
-        requestBody,
-        0,
-        50
-      );
-      const activeListing: any = response2.data.result;
-      console.log("Event query result:\n", activeListing.rows);
+      const activeListingIds = await contract.getActiveBeastListings();
+      const listings: ListingItem[] = [];
 
-      const activeIds = activeListingId.output;
-      const matchedListings = activeListing.rows.filter((item: any) =>
-        activeIds.includes(item.listingid)
-      );
+      for (const listingId of activeListingIds) {
+        const listing = await contract.listings(listingId);
+        if (listing.active && listing.nftAddress.toLowerCase() === NFT_CONTRACT_ADDRESS.toLowerCase()) {
+          const metadata = await fetchNFTMetadata(NFT_CONTRACT_ADDRESS, listing.tokenId);
+          listings.push({
+            listingid: Number(listingId),
+            nftaddress: NFT_CONTRACT_ADDRESS,
+            price: listing.price.toString(),
+            seller: listing.seller,
+            tokenid: Number(listing.tokenId),
+            metadata
+          });
+        }
+      }
 
-      const listingsWithMetadata = await Promise.all(
-        matchedListings.map(async (item: any) => {
-          const metadata = await fetchNFTMetadata(
-            item.nftaddress,
-            item.tokenid
-          );
-          return { ...item, metadata };
-        })
-      );
-
-      console.log(
-        "Filtered active listings with metadata:\n",
-        listingsWithMetadata
-      );
-      return listingsWithMetadata;
-    } catch (e) {
-      console.error("Error fetching listings:", e);
+      return listings;
+    } catch (error) {
+      console.error("Error fetching listings:", error);
       return [];
     }
   },

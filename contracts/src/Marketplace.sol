@@ -24,14 +24,29 @@ contract Marketplace is ReentrancyGuard, Ownable {
 
     // Mapping from listingId to Listing
     mapping(uint256 => Listing) public listings;
-    
+
     // Array to track all listing IDs
     uint256[] public allListingIds;
 
     // Events
-    event BeastListed(uint256 indexed listingId, uint256 indexed tokenId, address indexed seller, address nftAddress, uint256 price);
-    event BeastSold(uint256 indexed listingId, uint256 indexed tokenId, address indexed buyer, uint256 price);
-    event ListingCanceled(uint256 indexed listingId, uint256 indexed tokenId, address indexed seller);
+    event BeastListed(
+        uint256 indexed listingId,
+        uint256 indexed tokenId,
+        address indexed seller,
+        address nftAddress,
+        uint256 price
+    );
+    event BeastSold(
+        uint256 indexed listingId,
+        uint256 indexed tokenId,
+        address indexed buyer,
+        uint256 price
+    );
+    event ListingCanceled(
+        uint256 indexed listingId,
+        uint256 indexed tokenId,
+        address indexed seller
+    );
     event FeePercentageUpdated(uint256 oldFee, uint256 newFee);
 
     constructor(uint256 _feePercentage) Ownable(msg.sender) {
@@ -40,19 +55,23 @@ contract Marketplace is ReentrancyGuard, Ownable {
     }
 
     // List a beast for sale
-    function listBeast(address nftAddress, uint256 tokenId, uint256 price) external {
+    function listBeast(
+        address nftAddress,
+        uint256 tokenId,
+        uint256 price
+    ) external {
         IERC721 beastNFT = IERC721(nftAddress);
         require(beastNFT.ownerOf(tokenId) == msg.sender, "Not the owner");
         require(price > 0, "Price must be greater than zero");
         require(
-            beastNFT.isApprovedForAll(msg.sender, address(this)) || 
-            beastNFT.getApproved(tokenId) == address(this), 
+            beastNFT.isApprovedForAll(msg.sender, address(this)) ||
+                beastNFT.getApproved(tokenId) == address(this),
             "Marketplace not approved"
         );
 
         // Increment the listing counter to generate a unique ID
         uint256 listingId = listingCounter++;
-        
+
         // Create the listing
         listings[listingId] = Listing({
             listingId: listingId,
@@ -62,7 +81,7 @@ contract Marketplace is ReentrancyGuard, Ownable {
             price: price,
             active: true
         });
-        
+
         // Add to tracking array
         allListingIds.push(listingId);
 
@@ -83,17 +102,25 @@ contract Marketplace is ReentrancyGuard, Ownable {
         listing.active = false;
 
         // Transfer NFT to buyer
-        IERC721(listing.nftAddress).safeTransferFrom(listing.seller, msg.sender, listing.tokenId);
+        IERC721(listing.nftAddress).safeTransferFrom(
+            listing.seller,
+            msg.sender,
+            listing.tokenId
+        );
 
         // Transfer funds to seller
-        (bool success, ) = payable(listing.seller).call{value: sellerAmount}("");
+        (bool success, ) = payable(listing.seller).call{value: sellerAmount}(
+            ""
+        );
         require(success, "Failed to send ETH to seller");
 
         emit BeastSold(listingId, listing.tokenId, msg.sender, listing.price);
 
         // Refund excess payment
         if (msg.value > listing.price) {
-            (bool refundSuccess, ) = payable(msg.sender).call{value: msg.value - listing.price}("");
+            (bool refundSuccess, ) = payable(msg.sender).call{
+                value: msg.value - listing.price
+            }("");
             require(refundSuccess, "Failed to refund excess");
         }
     }
@@ -136,13 +163,19 @@ contract Marketplace is ReentrancyGuard, Ownable {
     }
 
     // Get details of a specific listing
-    function getListingDetails(uint256 listingId) external view returns (
-        address seller,
-        address nftAddress,
-        uint256 tokenId,
-        uint256 price,
-        bool active
-    ) {
+    function getListingDetails(
+        uint256 listingId
+    )
+        external
+        view
+        returns (
+            address seller,
+            address nftAddress,
+            uint256 tokenId,
+            uint256 price,
+            bool active
+        )
+    {
         Listing memory listing = listings[listingId];
         return (
             listing.seller,

@@ -170,7 +170,7 @@ export default function Marketplace() {
                 {item.metadata?.description}
               </p>
               <p className="text-gray-800 font-semibold text-lg mb-6">
-                Price: {Number(item.price) / 10 ** 18} A-CELO
+                Price: {Number(item.price) / 10 ** 18} ETH
               </p>
               <div className="flex gap-4">
                 <Button
@@ -236,7 +236,7 @@ export default function Marketplace() {
                       disabled={isApproving}
                     />
                     <a
-                      href={`https://alfajores.celoscan.io/token/${newListing.nftAddress}?a=${newListing.tokenId}`}
+                      href={`https://sepolia-optimism.etherscan.io/token/${newListing.nftAddress}?a=${newListing.tokenId}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -244,13 +244,13 @@ export default function Marketplace() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-gray-700 mb-2">Price (A-CELO)</label>
+                  <label className="block text-gray-700 mb-2">Price (ETH)</label>
                   <input
                     type="number"
                     className="w-full p-2 border rounded"
                     value={newListing.price}
                     onChange={(e) => setNewListing({...newListing, price: e.target.value})}
-                    placeholder="Enter price in A-CELO"
+                    placeholder="Enter price in ETH"
                     disabled={isApproving}
                   />
                 </div>
@@ -286,7 +286,7 @@ export default function Marketplace() {
                   <div className="flex items-center gap-2">
                     <p className="font-semibold">{selectedItem.tokenid}</p>
                     <a
-                      href={`https://alfajores.celoscan.io/nft/${selectedItem.nftaddress}/${selectedItem.tokenid}`}
+                      href={`https://sepolia-optimism.etherscan.io/nft/${selectedItem.nftaddress}/${selectedItem.tokenid}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -298,14 +298,14 @@ export default function Marketplace() {
                 </div>
                 <div>
                   <p className="text-gray-600">Price:</p>
-                  <p className="font-semibold">{Number(selectedItem.price) / 10 ** 18} A-CELO</p>
+                  <p className="font-semibold">{Number(selectedItem.price) / 10 ** 18} ETH</p>
                 </div>
                 <div>
                   <p className="text-gray-600">Seller:</p>
                   <div className="flex items-center gap-2">
                     <p className="font-semibold break-all">{selectedItem.seller}</p>
                     <a
-                      href={`https://alfajores.celoscan.io/address/${selectedItem.seller}`}
+                      href={`https://sepolia-optimism.etherscan.io/address/${selectedItem.seller}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -320,7 +320,7 @@ export default function Marketplace() {
                   <div className="flex items-center gap-2">
                     <p className="font-semibold break-all">{selectedItem.nftaddress}</p>
                     <a
-                      href={`https://alfajores.celoscan.io/address/${selectedItem.nftaddress}`}
+                      href={`https://sepolia-optimism.etherscan.io/address/${selectedItem.nftaddress}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >

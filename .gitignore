@@ -3,6 +3,10 @@ node_modules
 contracts/out
 contracts/cache
 packages/*/.env
+packages/thirdweb-app/.next
+packages/hardhat/artifacts
+packages/hardhat/cache
+packages/hardhat/typechain-types
 
 # IntelliJ project files
 *.iml

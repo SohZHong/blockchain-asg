@@ -6,6 +6,8 @@ import {MatchManager} from "../src/MatchManager.sol";
 
 contract DeployMatchManager is Script {
     function run() public returns (MatchManager) {
+        vm.createSelectFork("alfajores");
+
         // Start broadcasting transactions
         vm.startBroadcast();
 

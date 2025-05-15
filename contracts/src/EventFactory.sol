@@ -17,7 +17,14 @@ contract EventFactory is Initializable, Ownable2StepUpgradeable {
     event EventCreated(
         uint256 indexed eventId,
         address indexed organizer,
-        address indexed eventContractc
+        address indexed eventContract,
+        string name,
+        string description,
+        string location,
+        string baseUri,
+        uint256 participantLimit,
+        uint256 startDate,
+        uint256 rewardCount
     );
 
     modifier onlyRegisteredOrganizer() {
@@ -30,6 +37,7 @@ contract EventFactory is Initializable, Ownable2StepUpgradeable {
         address _organizerToken
     ) public initializer {
         __Ownable2Step_init();
+        _transferOwnership(msg.sender);
         implementation = _implementation;
         bytes32 slot = getImplementationSlot();
         assembly {
@@ -85,7 +93,18 @@ contract EventFactory is Initializable, Ownable2StepUpgradeable {
         EventImplementation(eventContract).initialize(msg.sender, eventData);
 
         events[nextEventId] = eventContract;
-        emit EventCreated(nextEventId, msg.sender, eventContract);
+        emit EventCreated(
+            nextEventId,
+            msg.sender,
+            eventContract,
+            _name,
+            _description,
+            _location,
+            _baseUri,
+            _participantLimit,
+            _startDate,
+            _rewardCount
+        );
         nextEventId++;
     }
 }

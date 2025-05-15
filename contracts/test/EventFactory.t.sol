@@ -18,6 +18,7 @@ contract EventFactoryTest is Test {
     address public nonOrganiser;
 
     function setUp() public {
+        owner = makeAddr("owner");
         organiser = makeAddr("organiser");
         nonOrganiser = makeAddr("nonOrganiser");
 
@@ -25,14 +26,15 @@ contract EventFactoryTest is Test {
             "ipfs://bafybeiawnhynmc7iqgelc5ro7chmxewnwn5hzkxpfhbefmkx4wykstmdxa/"
         );
         implementation = new EventImplementation();
-        eventFactory = new EventFactory();
 
-        // 👇 Ensure msg.sender is set to `owner` during initialize
-        vm.prank(owner);
+        // Deploy and initialize EventFactory as 'owner'
+        vm.startPrank(owner);
+        eventFactory = new EventFactory();
         eventFactory.initialize(
             address(implementation),
             address(organiserToken)
         );
+        vm.stopPrank();
     }
 
     function test_CannotCreateEvent_IfNotOrganizer() public {
@@ -86,7 +88,6 @@ contract EventFactoryTest is Test {
 
     function test_EventEmitsCorrectly() public {
         organiserToken.mint(organiser);
-
         vm.startPrank(organiser);
         vm.recordLogs();
 
@@ -102,21 +103,23 @@ contract EventFactoryTest is Test {
 
         Vm.Log[] memory logs = vm.getRecordedLogs();
         bytes32 expectedSig = keccak256(
-            "EventCreated(uint256,address,address)"
+            "EventCreated(uint256,address,address,string,string,string,string,uint256,uint256,uint256)"
         );
 
         bool found;
         for (uint256 i = 0; i < logs.length; i++) {
-            if (logs[i].topics.length > 0 && logs[i].topics[0] == expectedSig) {
+            if (
+                logs[i].topics.length == 4 && logs[i].topics[0] == expectedSig
+            ) {
                 assertEq(uint256(logs[i].topics[1]), 0); // eventId
                 assertEq(
                     address(uint160(uint256(logs[i].topics[2]))),
                     organiser
-                );
+                ); // organizer
                 assertEq(
                     address(uint160(uint256(logs[i].topics[3]))),
                     eventAddr
-                );
+                ); // event contract
                 found = true;
                 break;
             }

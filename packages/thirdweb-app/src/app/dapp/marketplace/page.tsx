@@ -181,7 +181,7 @@ export default function Marketplace() {
           {/* Banner Image */}
           <div className="absolute inset-0">
             <Image
-              src="/marketplace/marketplace-bg2.png"
+              src="/dapp/marketplace-bg2.png"
               alt="Collection Banner"
               fill
               className="object-cover object-center"
@@ -283,7 +283,15 @@ export default function Marketplace() {
           </aside>
           {/* NFT Cards Grid */}
           <div className="flex-1">
-            <h2 className="text-2xl font-dark-mystic text-white mb-6">LISTED NFTS</h2>
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-dark-mystic text-white mb-6">Listed NFTs</h2>
+              <Button
+                className="bg-green-600 text-white hover:bg-green-700 font-inter"
+                onClick={handleAddListing}
+              >
+                Add Listing
+              </Button>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredItems.map((item) => (
                 <div

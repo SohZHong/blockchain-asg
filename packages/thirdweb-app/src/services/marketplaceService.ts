@@ -90,9 +90,9 @@ export interface NFTMetadata {
   name: string;
   description: string;
   image: string;
-  rarity?: string;
-  health?: number;
-  attack?: number;
+  // rarity?: string;
+  // health?: number;
+  // attack?: number;
 }
 
 export interface ListingItem {

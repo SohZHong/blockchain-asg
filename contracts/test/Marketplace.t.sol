@@ -58,7 +58,10 @@ contract MarketplaceTest is Test {
         vm.deal(BUYER, 10 ether);
         vm.deal(SELLER, 1 ether);
 
-        // Mint NFT to seller
+        // Mint tokenId 0 to SELLER
+        mockNFT.mint(SELLER);
+
+        // Approve marketplace
         vm.startPrank(SELLER);
         mockNFT.setApprovalForAll(address(marketplace), true);
         vm.stopPrank();

@@ -17,17 +17,17 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useThirdWeb } from "@/hooks/useThirdWeb";
-import ThirdWebConnectButton from "@/components/ThirdWebConnectButton";
+import Navbar from "@/components/custom/navbar";
 import Link from "next/link";
 import { useState } from "react";
 import Image from "next/image";
 
-const MAX_FILE_SIZE = 1000000;
-const ACCEPTED_IMAGE_TYPES: Accept = {
-  "image/png": [".png"],
-  "image/jpeg": [".jpeg"],
-  "image/jpg": [".jpg"],
-};
+// const MAX_FILE_SIZE = 1000000;
+// const ACCEPTED_IMAGE_TYPES: Accept = {
+//   "image/png": [".png"],
+//   "image/jpeg": [".jpeg"],
+//   "image/jpg": [".jpg"],
+// };
 
 export default function EventCreationPage() {
   // Form validation logic
@@ -158,16 +158,19 @@ export default function EventCreationPage() {
   };
 
   return (
-    <main className="p-6 min-h-[100vh] container max-w-screen-lg mx-auto">
-      <div className="w-full">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold">Event Creation</h1>
-          <ThirdWebConnectButton />
+    <main className="min-h-[100vh] w-full bg-[url('/dapp/event-creation.png')] bg-cover bg-center text-white relative">
+      {/* Background overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/90 to-black/80 z-0" />
+      
+      {/* Form container */}
+      <div className="relative z-30 max-w-screen-lg mx-auto py-24">
+        <Navbar />
+        <div className="flex flex-col items-center justify-center font-dark-mystic text-4xl font-bold">
+          Event Creation
         </div>
-
         {account && (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col w-full gap-5">
               <FormField
                 control={form.control}
                 name="name"
@@ -181,7 +184,7 @@ export default function EventCreationPage() {
                         {...field}
                       />
                     </FormControl>
-                    <FormDescription>Event's Name</FormDescription>
+                    {/* <FormDescription>Event's Name</FormDescription> */}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -195,7 +198,7 @@ export default function EventCreationPage() {
                     <FormControl>
                       <Input placeholder="Description" {...field} />
                     </FormControl>
-                    <FormDescription>Event's Description</FormDescription>
+                    {/* <FormDescription>Event's Description</FormDescription> */}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -209,9 +212,9 @@ export default function EventCreationPage() {
                     <FormControl>
                       <Input placeholder="Location" {...field} />
                     </FormControl>
-                    <FormDescription>
+                    {/* <FormDescription>
                       Location the Event is held at
-                    </FormDescription>
+                    </FormDescription> */}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -229,9 +232,9 @@ export default function EventCreationPage() {
                         {...field}
                       />
                     </FormControl>
-                    <FormDescription>
+                    {/* <FormDescription>
                       Participant Limit for the Event
-                    </FormDescription>
+                    </FormDescription> */}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -243,14 +246,14 @@ export default function EventCreationPage() {
                   <FormItem>
                     <FormLabel>Event Start Date</FormLabel>
                     <FormControl>
-                      <Input type="date" placeholder="Start Date" {...field} />
+                      <Input type="date" placeholder="Start Date" {...field} className="text-white" />
                     </FormControl>
-                    <FormDescription>Event's Start Date</FormDescription>
+                    {/* <FormDescription>Event's Start Date</FormDescription> */}
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <div className="flex min-w-full items-center gap-x-4">
+              <div className="flex flex-row min-w-full items-end gap-x-4 justify-center">
                 <FormField
                   control={form.control}
                   name="prompt"
@@ -260,7 +263,7 @@ export default function EventCreationPage() {
                       <FormControl>
                         <Input placeholder="Prompt" {...field} />
                       </FormControl>
-                      <FormDescription>Prompt for the Event</FormDescription>
+                      {/* <FormDescription>Prompt for the Event</FormDescription> */}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -269,6 +272,7 @@ export default function EventCreationPage() {
                   type="button"
                   onClick={() => promptImage(form.getValues("prompt"))}
                   disabled={isGenerating}
+                  className="bg-white text-black hover:bg-gray-200"
                 >
                   {isGenerating ? "Generating..." : "Prompt Your Image"}
                 </Button>
@@ -293,16 +297,15 @@ export default function EventCreationPage() {
                   </div>
                 </div>
               )}
-              <Button type="submit">Submit</Button>
+              <Button
+                type="submit"
+                className="bg-white text-black mt-4 hover:bg-gray-200"
+              >
+                Submit
+              </Button>
             </form>
           </Form>
         )}
-
-        <nav className="flex flex-col items-center justify-center">
-          <Link href={"/"}>Home Page</Link>
-          <Link href={"/organiser"}>Organiser Page</Link>
-          <Link href={"/event"}>Event Listings Page</Link>
-        </nav>
       </div>
     </main>
   );

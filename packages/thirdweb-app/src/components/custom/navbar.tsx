@@ -63,7 +63,7 @@ export default function Navbar() {
             </li>
             <li>
               <Link
-                href="/event"
+                href="/events"
                 className="block py-2 px-3 text-white rounded md:hover:bg-transparent hover:text-blue-300 md:p-0"
               >
                 Events

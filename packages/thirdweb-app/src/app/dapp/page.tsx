@@ -10,6 +10,7 @@ import Navigation from "@/components/landing-page/Navigation";
 import { getSupabaseClient } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
+import { Spinner } from "@/components/Spinner";
 
 // Define interface for event data
 interface EventData {
@@ -184,6 +185,7 @@ export default function Dapp() {
   const [selectedTab, setSelectedTab] = useState("home");
   const [isEventCreator, setIsEventCreator] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activityLoading, setActivityLoading] = useState(false);
   const router = useRouter();
   const { account } = useThirdWeb();
   const [events, setEvents] = useState<EventData[]>([]);
@@ -218,6 +220,7 @@ export default function Dapp() {
   // Handle navigation to milestone page with contract address
   const handleMilestoneClick = (event: EventData) => {
     if (event.address) {
+      setActivityLoading(true);
       router.push(`/dapp/milestones/${event.address}`);
     }
   };
@@ -226,20 +229,26 @@ export default function Dapp() {
   const basicActivities = isEventCreator
     ? [
         {
-          id: "event/create",
+          id: "events/create",
           title: "Create Event",
           subtitle: "CREATE NEW EVENT",
           image: "/dapp/story-bg1.png",
           color: "bg-green-700",
-          onClick: () => router.push("/event/create"),
+          onClick: () => {
+            setActivityLoading(true);
+            router.push("/events/create");
+          },
         },
         {
-          id: "manage",
-          title: "Manage Event",
-          subtitle: "MANAGE EXISTING EVENTS",
+          id: "view events",
+          title: "View Events",
+          subtitle: "VIEW EXISTING EVENTS",
           image: "/dapp/event-bg.png",
           color: "bg-red-700",
-          onClick: () => router.push("/event/manage"),
+          onClick: () => {
+            setActivityLoading(true);
+            router.push("/events");
+          },
         },
       ]
     : [
@@ -249,7 +258,10 @@ export default function Dapp() {
           subtitle: "Find Events",
           image: "/dapp/event-bg.png",
           color: "bg-amber-700",
-          onClick: () => router.push("/events"),
+          onClick: () => {
+            setActivityLoading(true);
+            router.push("/events");
+          },
         },
         {
           id: "dapp/battle",
@@ -257,7 +269,10 @@ export default function Dapp() {
           subtitle: "PVP Arena",
           image: "/dapp/battle-bg.png",
           color: "bg-blue-700",
-          onClick: () => router.push("/dapp/battle"),
+          onClick: () => {
+            setActivityLoading(true);
+            router.push("/dapp/battle");
+          },
         },
       ];
 
@@ -290,6 +305,12 @@ export default function Dapp() {
 
   return (
     <div className="min-h-screen w-full bg-[url('/dapp/dapp-bg.png')] bg-cover bg-right text-white flex flex-col">
+      {/* Loading Overlay */}
+      {activityLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <Spinner size="large" />
+        </div>
+      )}
       {/* Header */}
       <header className="w-full bg-black/60 backdrop-blur-md shadow-lg z-10 px-0 md:px-6 py-4 flex items-center justify-between relative">
         <button

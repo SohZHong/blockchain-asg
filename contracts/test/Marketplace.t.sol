@@ -60,12 +60,11 @@ contract MarketplaceTest is Test {
 
         // Mint NFT to seller
         vm.startPrank(SELLER);
-        uint256 tokenId = mockNFT.mint(SELLER);
         mockNFT.setApprovalForAll(address(marketplace), true);
         vm.stopPrank();
     }
 
-    function testListBeast() public {
+    function test_ListBeast() public {
         vm.startPrank(SELLER);
         uint256 tokenId = 0; // First minted token
 
@@ -91,7 +90,7 @@ contract MarketplaceTest is Test {
         vm.stopPrank();
     }
 
-    function testBuyBeast() public {
+    function test_BuyBeast() public {
         // First list a beast
         vm.prank(SELLER);
         marketplace.listBeast(address(mockNFT), 0, LISTING_PRICE);
@@ -123,7 +122,7 @@ contract MarketplaceTest is Test {
         vm.stopPrank();
     }
 
-    function testCancelListing() public {
+    function test_CancelListing() public {
         // First list a beast
         vm.prank(SELLER);
         marketplace.listBeast(address(mockNFT), 0, LISTING_PRICE);
@@ -140,7 +139,7 @@ contract MarketplaceTest is Test {
         vm.stopPrank();
     }
 
-    function testGetActiveBeastListings() public {
+    function test_GetActiveBeastListings() public {
         // List multiple beasts
         vm.startPrank(SELLER);
         uint256 tokenId1 = mockNFT.mint(SELLER);
@@ -160,7 +159,7 @@ contract MarketplaceTest is Test {
         assertEq(activeListings[1], 2);
     }
 
-    function testUpdateFeePercentage() public {
+    function test_UpdateFeePercentage() public {
         uint256 newFee = 500; // 5%
 
         vm.expectEmit(true, true, true, true);
@@ -170,7 +169,7 @@ contract MarketplaceTest is Test {
         assertEq(marketplace.feePercentage(), newFee);
     }
 
-    function testWithdrawFees() public {
+    function test_WithdrawFees() public {
         // First generate some fees through a purchase
         vm.prank(SELLER);
         marketplace.listBeast(address(mockNFT), 0, LISTING_PRICE);

@@ -16,7 +16,11 @@ contract MatchManagerTest is Test {
     event BattleStarted(
         uint256 battleId,
         address indexed player1,
-        address indexed player2
+        address indexed player2,
+        uint256 player1MinDmg,
+        uint256 player1MaxDmg,
+        uint256 player2MinDmg,
+        uint256 player2MaxDmg
     );
     event Attack(
         uint256 battleId,
@@ -35,8 +39,18 @@ contract MatchManagerTest is Test {
 
     function test_StartBattle() public {
         vm.startPrank(player1);
-        vm.expectEmit();
-        emit BattleStarted(1, player1, player2);
+
+        vm.expectEmit(true, true, true, true); // match all indexed and non-indexed fields
+        emit BattleStarted(
+            1,
+            player1,
+            player2,
+            PLAYER1_MIN_DMG,
+            PLAYER1_MAX_DMG,
+            PLAYER2_MIN_DMG,
+            PLAYER2_MAX_DMG
+        );
+
         matchManager.startBattle(
             player2,
             PLAYER1_MIN_DMG,
@@ -44,6 +58,7 @@ contract MatchManagerTest is Test {
             PLAYER2_MIN_DMG,
             PLAYER2_MAX_DMG
         );
+
         vm.stopPrank();
 
         (uint256 p1HP, uint256 p2HP) = matchManager.getHP(1);
@@ -52,9 +67,8 @@ contract MatchManagerTest is Test {
     }
 
     function test_Attack() public {
+        // Start battle
         vm.startPrank(player1);
-        vm.expectEmit();
-        emit BattleStarted(1, player1, player2);
         matchManager.startBattle(
             player2,
             PLAYER1_MIN_DMG,
@@ -64,9 +78,12 @@ contract MatchManagerTest is Test {
         );
         vm.stopPrank();
 
+        // Attack
         vm.startPrank(player1);
-        vm.expectEmit();
+
+        vm.expectEmit(true, true, false, false);
         emit Attack(1, player1, 20, player2, 80);
+
         matchManager.attack(1, 20);
         vm.stopPrank();
 
@@ -104,9 +121,9 @@ contract MatchManagerTest is Test {
         vm.stopPrank();
 
         vm.startPrank(player1);
-        vm.expectEmit();
+        vm.expectEmit(true, true, false, false);
         emit BattleEnded(1, player1);
-        matchManager.attack(1, 100);
+        matchManager.attack(1, 100); // Ends battle
         vm.stopPrank();
 
         vm.startPrank(player2);
@@ -117,8 +134,6 @@ contract MatchManagerTest is Test {
 
     function test_MultipleBattles() public {
         vm.startPrank(player1);
-        vm.expectEmit();
-        emit BattleStarted(1, player1, player2);
         matchManager.startBattle(
             player2,
             PLAYER1_MIN_DMG,
@@ -129,13 +144,13 @@ contract MatchManagerTest is Test {
         vm.stopPrank();
 
         vm.startPrank(player1);
-        vm.expectEmit();
+        vm.expectEmit(true, true, false, false);
         emit Attack(1, player1, 20, player2, 80);
         matchManager.attack(1, 20);
         vm.stopPrank();
 
         vm.startPrank(player2);
-        vm.expectEmit();
+        vm.expectEmit(true, true, false, false);
         emit Attack(1, player2, 25, player1, 75);
         matchManager.attack(1, 25);
         vm.stopPrank();
@@ -147,8 +162,6 @@ contract MatchManagerTest is Test {
 
     function test_BattleEnded() public {
         vm.startPrank(player1);
-        vm.expectEmit();
-        emit BattleStarted(1, player1, player2);
         matchManager.startBattle(
             player2,
             PLAYER1_MIN_DMG,
@@ -159,7 +172,7 @@ contract MatchManagerTest is Test {
         vm.stopPrank();
 
         vm.startPrank(player1);
-        vm.expectEmit();
+        vm.expectEmit(true, true, false, false);
         emit BattleEnded(1, player1);
         matchManager.attack(1, 100);
         vm.stopPrank();

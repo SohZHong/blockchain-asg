@@ -29,7 +29,11 @@ contract MatchManager {
     event BattleStarted(
         uint256 battleId,
         address indexed player1,
-        address indexed player2
+        address indexed player2,
+        uint256 player1MinDmg,
+        uint256 player1MaxDmg,
+        uint256 player2MinDmg,
+        uint256 player2MaxDmg
     );
     event BattleEnded(uint256 battleId, address indexed winner);
 
@@ -48,7 +52,15 @@ contract MatchManager {
             msg.sender,
             true
         );
-        emit BattleStarted(battleCounter, msg.sender, _opponent);
+        emit BattleStarted(
+            battleCounter,
+            msg.sender,
+            _opponent,
+            _player1MinDmg,
+            _player1MaxDmg,
+            _player2MinDmg,
+            _player2MaxDmg
+        );
     }
 
     // Commented the code cause Celo L2 does not support randomness anymore

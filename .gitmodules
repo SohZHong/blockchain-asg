@@ -1,0 +1,6 @@
+[submodule "thirdweb-app/mystic-kaizer-express"]
+	path = thirdweb-app/mystic-kaizer-express
+	url = https://github.com/SohZHong/mystic-kaizer-express
+[submodule "mystic-kaizer-express"]
+	path = mystic-kaizer-express
+	url = https://github.com/SohZHong/mystic-kaizer-express

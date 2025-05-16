@@ -232,6 +232,26 @@ export const marketplaceService = {
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
+          },
+          {
+            "inputs": [],
+            "name": "NotApproved",
+            "type": "error"
+          },
+          {
+            "inputs": [],
+            "name": "NotOwner",
+            "type": "error"
+          },
+          {
+            "inputs": [],
+            "name": "PriceMustBeAboveZero",
+            "type": "error"
+          },
+          {
+            "inputs": [],
+            "name": "TokenNotApproved",
+            "type": "error"
           }
         ],
         client,

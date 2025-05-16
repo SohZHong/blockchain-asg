@@ -1,7 +1,6 @@
 <!-- TITLE -->
 <p align="center">
-  <img width="100px" src="thirdweb-app/public/landing-page/white-title.svg" align="center" alt="Title" />
- <h2 align="center">Mystic Kaizer</h2>
+  <img width="250px" src="thirdweb-app/public/landing-page/white-title.svg" align="center" alt="Title" />
  <p align="center">Our One Liner</p>
 </p>
 </p>
@@ -88,6 +87,11 @@ One Liner for our project
 - **Local & Remote Ready**: Easily deploy the backend server using Docker for both local dev and remote environments.
 - **Webhook Hosting**: Dockerized Express server can be used as a webhook endpoint for MultiBaas.
 
+### Gasless & Signless Interactions (via Thirdweb Engine)
+
+- **Smooth UX**: Players can mint and interact with contracts without needing to sign transactions or pay gas directly.
+- **Thirdweb Engine Integration**: Handles server-side authentication and transaction execution to reduce friction for players.
+
 ## Built With
 
 - [Celo](https://celo.org/)
@@ -107,6 +111,28 @@ One Liner for our project
 
 - Node (v20 or higher)
 - Git (v2.38 or higher)
+
+## Thirdweb Engine Setup
+
+This project integrates with [Thirdweb Engine](https://portal.thirdweb.com/engine) to enable gasless and signless transactions.
+
+### What It Does
+
+- Powers gasless minting and contract interactions for players.
+- Authenticates users securely using server-generated payloads.
+- Abstracts blockchain complexities away from the frontend.
+
+### Quick Setup Summary
+
+1. **Install Thirdweb Engine** on your server or use the hosted version.
+2. **Configure `.env`** with your Engine URL and secret key:
+   ```bash
+   ENGINE_URL=https://your-engine-host.com
+   THIRDWEB_SECRET_KEY=your-secret-key
+   NEXT_PUBLIC_THIRDWEB_ENGINE_WALLET_ADDRESS=your-wallet-address
+   ```
+   > [!TIP]
+   > It is recommend to follow their official setup guidelines [here](https://github.com/thirdweb-dev/engine?tab=readme-ov-file#setup)
 
 ## How Multibaas is Used
 

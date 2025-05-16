@@ -200,7 +200,7 @@ export default function Dapp() {
         const { data, error } = await supabase
           .from("events")
           .select("*")
-          .filter("isStarted", "eq", true)
+          .filter("is_started", "eq", true)
           .order("created_at", { ascending: false });
         if (error) {
           console.error("Error fetching events:", error);

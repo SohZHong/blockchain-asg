@@ -91,7 +91,6 @@ export default function ContractAddressPage() {
           isStarted: data.is_started,
         });
       }
-      setCanStartEvent(eventData?.isStarted!);
       setLoading(false);
     };
 
@@ -261,9 +260,9 @@ export default function ContractAddressPage() {
     );
   };
   
-  // This renders an event that hasn't started yet
+  // This renders an event that hasn't started yet or has already started
   const renderUpcomingEvent = () => {
-    if (!eventData) return null;
+    if (!eventData || (eventData.isStarted && !isOrganiser)) return null;
     
     return (
       <div className="w-full max-w-4xl">
@@ -271,7 +270,11 @@ export default function ContractAddressPage() {
           <div className="h-48 bg-gradient-to-r from-purple-600 to-blue-600 relative">
             <div className="absolute inset-0 bg-black opacity-20"></div>
             <div className="absolute bottom-4 left-6">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                eventData.isStarted 
+                  ? "bg-purple-100 text-purple-800" 
+                  : "bg-green-100 text-green-800"
+              }`}>
                 {eventData.isStarted ? "Ongoing" : "Upcoming"}
               </span>
             </div>
@@ -338,9 +341,9 @@ export default function ContractAddressPage() {
                 {isOrganiser ? (
                   <Button
                     onClick={onStartEvent}
-                    disabled={!canStartEvent || isStartingEvent}
+                    disabled={!canStartEvent || isStartingEvent || eventData.isStarted}
                     className={`${
-                      canStartEvent 
+                      canStartEvent && !eventData.isStarted
                         ? "bg-green-600 hover:bg-green-700" 
                         : "bg-gray-600 cursor-not-allowed"
                     } text-white font-bold py-3 px-6 rounded-lg`}
@@ -350,6 +353,8 @@ export default function ContractAddressPage() {
                         <Spinner size="small" /> 
                         <span className="ml-2">Starting...</span>
                       </>
+                    ) : eventData.isStarted ? (
+                      <>Event Already Started</>
                     ) : (
                       <>Start Event</>
                     )}
@@ -357,14 +362,20 @@ export default function ContractAddressPage() {
                 ) : (
                   <Button
                     onClick={onRegisteringEvent}
-                    disabled={isRegistering}
-                    className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-lg min-w-[150px]"
+                    disabled={isRegistering || eventData.isStarted}
+                    className={`${
+                      !eventData.isStarted
+                        ? "bg-purple-600 hover:bg-purple-700" 
+                        : "bg-gray-600 cursor-not-allowed"
+                    } text-white font-bold py-3 px-8 rounded-lg min-w-[150px]`}
                   >
                     {isRegistering ? (
                       <>
                         <Spinner size="small" /> 
                         <span className="ml-2">Registering...</span>
                       </>
+                    ) : eventData.isStarted ? (
+                      <>Registration Closed</>
                     ) : (
                       <>Register</>
                     )}
@@ -385,7 +396,10 @@ export default function ContractAddressPage() {
       <div className="w-full max-w-7xl mx-auto px-4 pt-24 pb-16 flex flex-col items-center">
         {account?.address ? (
           <>
-            {renderOngoingEvent()}
+            {/* For participants of ongoing events, show QR code */}
+            {eventData?.isStarted && !isOrganiser && renderOngoingEvent()}
+            
+            {/* Always show the event details card */}
             {renderUpcomingEvent()}
           </>
         ) : (

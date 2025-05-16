@@ -34,6 +34,7 @@ export default function BattleRoom({ playerAddress, onRoomSelect }: BattleRoomPr
         atkMin: selectedNFT.metadata.attributes[3].value,
         atkMax: selectedNFT.metadata.attributes[4].value,
         health: selectedNFT.metadata.attributes[2].value,
+        nftImage: selectedNFT.image,
         // Only passing the name for identification in the UI, not saved to DB
         nftName: selectedNFT.metadata.name
       };

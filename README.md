@@ -1,6 +1,6 @@
 <!-- TITLE -->
 <p align="center">
-  <img width="100px" src="https://github.com/celo-org/celo-composer/blob/main/images/readme/celo_isotype.svg" align="center" alt="Celo" />
+  <img width="100px" src="thirdweb-app/public/landing-page/white-title.svg" align="center" alt="Title" />
  <h2 align="center">Mystic Kaizer</h2>
  <p align="center">Our One Liner</p>
 </p>
@@ -13,6 +13,7 @@
   <ol>
     <li><a href="#about-the-project">About The Project</a></li>
       <ol>
+        <li><a href="#features">Features</a></li>
         <li><a href="#built-with">Built With</a></li>
         <li><a href="#prerequisites">Prerequisites</a></li>
      </ol>
@@ -28,13 +29,14 @@
           <li><a href="#prerequisites">Prerequisites</a></li>
           <li><a href="#setup-steps">Setup Steps</a></li>
         </ol>
-    <li><a href="#multibaas-setup-and-testing-instructions">Multibaas Setup and Testing Instructions</a></li>
+    <li><a href="#experience-with-multibaas">Experience with Multibaas</a></li>
         <ol>
           <li><a href="#feedback">Feedback</a></li>
           <li><a href="#challenges">Challenges</a></li>
           <li><a href="#wins">Wins</a></li>
         </ol>
     <li><a href="#license">License</a></li>
+
   </ol>
 </div>
 
@@ -46,12 +48,52 @@ One Liner for our project
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
+## Features
+
+### AI-Generated NFT Game Cards
+
+- **Dynamic Character Creation**: Players receive unique NFT game cards upon signup, generated via an AI agent that assembles randomized traits.
+- **On-Chain Minting**: Images are uploaded to IPFS and minted as ERC-721 NFTs using smart contracts.
+
+### On-Chain Battle Mechanics
+
+- **Turn-Based Battles**: Players join code-based lobbies and engage in turn-based PvP battles.
+- **Smart Contract Execution**: Battle logic is enforced on-chain through custom contracts for fairness and transparency.
+
+### Integrated NFT Marketplace
+
+- **Trade & Collect**: Players can browse, trade, and collect NFTs through a built-in marketplace.
+
+### Modular Smart Contract System
+
+- [EventFactory](https://alfajores.celoscan.io/address/0xC4F53B0021141407Ec99F14Fd844f8A0C03ACacF) Spawns new event contract instances dynamically.
+- [MatchManager](https://alfajores.celoscan.io/address/0x97f768869a4207DE4450C610A3A5331e36CC3BAd): Manages the creation and flow of battles.
+- [Marketplace](https://alfajores.celoscan.io/address/0x41Be93E3914e4262dD7A08cEce2f80EB84b8B0e2): Handles listing and trading of NFTs.
+- [OrganizerToken](https://alfajores.celoscan.io/address/0xFa1946Ae5C5cc2b07419D307F727484b52C9A6c1): Provides event organizer-specific logic and permissions.
+
+### Multibaas Integration
+
+- **Event Indexing**: Tracks and indexes smart contract events in real-time.
+- **Contract Read Access**: Uses MultiBaas SDK to fetch on-chain state efficiently.
+- **Webhook Triggers**: Sends contract event data to the backend, where it’s processed and stored in Supabase.
+
+### Supabase Backend
+
+- **Real-Time Data Sync**: Stores off-chain metadata for events, players, battles, and logs.
+- **Battle & Event Logging**: Inserts event and action data triggered from on-chain events.
+- **RPC Support**: Uses stored procedures (e.g., for incrementing participant count) for more secure updates.
+
+### Dockerized for Deployment
+
+- **Local & Remote Ready**: Easily deploy the backend server using Docker for both local dev and remote environments.
+- **Webhook Hosting**: Dockerized Express server can be used as a webhook endpoint for MultiBaas.
+
 ## Built With
 
 - [Celo](https://celo.org/)
 - [Multibaas](https://docs.curvegrid.com/multibaas)
 - [Solidity](https://docs.soliditylang.org/en/v0.8.19/)
-- [Hardhat](https://hardhat.org/)
+- [Foundry](https://book.getfoundry.sh/)
 - [Thirdweb](https://portal.thirdweb.com/)
 - [Pinata](https://pinata.cloud/)
 - [Next.js](https://nextjs.org/)
@@ -74,7 +116,7 @@ MultiBaas serves as both the read and write integration layer for the project, a
 - Executing contract write operations such as marketplace listings
 - Running custom event queries for filtered real-time data
 
-All contracts are deployed and verified using **Hardhat**, then registered in the **MultiBaas UI Console** with assigned aliases and linked ABIs. This dynamic linking allows the SDK to interact with any deployed contract without hardcoding addresses.
+All contracts are deployed and verified using **Foundry**, then registered in the **MultiBaas UI Console** with assigned aliases and linked ABIs. This dynamic linking allows the SDK to interact with any deployed contract without hardcoding addresses.
 
 While some transactions are still executed via Thirdweb Engine (e.g., for gasless flows using session keys), MultiBaas handles a majority of smart contract interaction logic.
 
@@ -88,11 +130,11 @@ Main Usages are:
 
 This project involves the following smart contracts:
 
-- Marketplace: Handles listings and offers
-- MatchManager: Controls the battle system
-- OrganizerToken: Verifies permission to create events
-- EventFactory: Deploys event contracts
-- Event (implementation): The template for all deployed event contracts
+- `Marketplace`: Handles listings and offers
+- `MatchManager`: Controls the battle system
+- `OrganizerToken`: Verifies permission to create events
+- `EventFactory`: Deploys event contracts
+- `Event (implementation)`: The template for all deployed event contracts
 
 ### Contract Read Operations
 
@@ -106,14 +148,11 @@ If the contract has a function like this:
 
 ```solidity
   function getMilestones() external view returns (uint256[] memory) {
-    uint256 rewardCount = eventData.rewardCount;
-    uint256[] memory milestones = new uint256[](rewardCount);
-
-    for (uint256 i = 1; i <= rewardCount; i++) {
-      milestones[i - 1] = milestoneMap[i];
-    }
-
-    return milestones;
+      uint256[] memory milestones = new uint256[](eventData.rewardCount);
+      for (uint256 i = 0; i < eventData.rewardCount; i++) {
+          milestones[i] = milestoneMap[i];
+      }
+      return milestones;
   }
 ```
 
@@ -333,10 +372,11 @@ This section will guide you through the process of setting up and testing Multib
 ### Prerequisites
 
 Ensure that you have the following installed:
-• Node.js (v20 or above)
-• Docker (for containerized services)
-• Multibaas SDK
-• Webhook server (e.g., Express.js)
+
+- [Node.js](https://nodejs.org/) (v20 or above)
+- [Docker](https://www.docker.com/get-started) (for containerized services)
+- Multibaas SDK
+- Webhook server (e.g., Express.js)
 
 ### Setup Steps
 

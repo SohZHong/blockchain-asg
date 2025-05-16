@@ -25,6 +25,10 @@ export default function Marketplace() {
   });
   const [isBuying, setIsBuying] = useState(false);
   const [buyError, setBuyError] = useState<string | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [transactionHash, setTransactionHash] = useState<string>('');
+  const [operationType, setOperationType] = useState<'listing' | 'removal'>('listing');
 
   // Filter state
   const [priceRange, setPriceRange] = useState([0, 100]);
@@ -52,7 +56,7 @@ export default function Marketplace() {
   const filteredItems = items
     .filter((item) => {
       const price = Number(item.price) / 10 ** 18;
-      const rarity = item.metadata?.rarity ?? "Common";
+      const rarity = item.metadata?.attributes?.find(attr => attr.trait_type === 'Rarity')?.value ?? "Common";
       return (
         price >= priceRange[0] &&
         price <= priceRange[1] &&
@@ -100,14 +104,19 @@ export default function Marketplace() {
       // Convert price to wei (multiply by 10^18)
       const priceInWei = (Number(newListing.price) * 10 ** 18).toString();
       
-      await marketplaceService.addListing(
+      const tx = await marketplaceService.addListing(
         {
-          ...newListing,
+          tokenId: newListing.tokenId,
           price: priceInWei
         },
         account,
         client
       );
+      
+      // Set transaction hash and show success modal
+      setTransactionHash(tx);
+      setOperationType('listing');
+      setShowSuccessModal(true);
       
       // Refresh listings
       const listings = await marketplaceService.fetchListings();
@@ -138,9 +147,14 @@ export default function Marketplace() {
     setError(null);
 
     try {
-      await marketplaceService.removeListing(listingId, account, client);
+      const tx = await marketplaceService.removeListing(listingId, account, client);
       setItems(items.filter(item => item.listingid !== listingId));
       handleCloseModal();
+      
+      // Set transaction hash and show success modal
+      setTransactionHash(tx);
+      setOperationType('removal');
+      setShowSuccessModal(true);
     } catch (error) {
       console.error("Error removing NFT from market:", error);
       setError(error instanceof Error ? error.message : "Failed to remove listing");
@@ -472,6 +486,26 @@ export default function Marketplace() {
                   </div>
                 </div>
               </div>
+
+              <h3 className="text-2xl font-bold mb-4">NFT Stats</h3>
+              <div className="grid grid-cols-2 gap-4 mb-6">
+              <div>
+                  <p className="text-gray-600">Rarity:</p>
+                  <p className="font-semibold break-all">{selectedItem.metadata?.attributes?.find(attr => attr.trait_type === 'Rarity')?.value}</p>
+              </div>
+              <div>
+                  <p className="text-gray-600">Health:</p>
+                  <p className="font-semibold break-all">{selectedItem.metadata?.attributes?.find(attr => attr.trait_type === 'Health')?.value}</p>
+              </div>
+              <div>
+                  <p className="text-gray-600">Minimum Attack:</p>
+                  <p className="font-semibold break-all">{selectedItem.metadata?.attributes?.find(attr => attr.trait_type === 'Minimum Attack')?.value}</p>
+              </div>
+              <div>
+                  <p className="text-gray-600">Maximum Attack:</p>
+                  <p className="font-semibold break-all">{selectedItem.metadata?.attributes?.find(attr => attr.trait_type === 'Maximum Attack')?.value}</p>
+              </div>
+              </div>
               <div className="flex justify-end">
                 <Button
                   className="bg-gray-500 text-white hover:bg-gray-600"
@@ -496,6 +530,68 @@ export default function Marketplace() {
                 <Button
                   className="bg-gray-500 text-white hover:bg-gray-600"
                   onClick={() => setBuyError(null)}
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Success Modal */}
+        {showSuccessModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white p-8 rounded-lg max-w-md w-full">
+              <h2 className="text-2xl font-bold mb-4 text-green-600">
+                {operationType === 'listing' ? 'Listing Created Successfully!' : 'NFT Removed Successfully!'}
+              </h2>
+              <div className="mb-4">
+                <p className="text-gray-700 mb-2">Transaction Hash:</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-mono text-sm break-all">{transactionHash}</p>
+                  <a
+                    href={`https://alfajores.celoscan.io/tx/${transactionHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    <Button size="sm" className="bg-blue-600 text-white hover:bg-blue-700">
+                      View
+                    </Button>
+                  </a>
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <Button
+                  className="bg-green-600 text-white hover:bg-green-700"
+                  onClick={() => setShowSuccessModal(false)}
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error Modal */}
+        {showErrorModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white p-8 rounded-lg max-w-md w-full">
+              <h2 className="text-2xl font-bold mb-4 text-red-600">
+                {operationType === 'listing' ? 'Failed to Create Listing' : 'Failed to Remove NFT'}
+              </h2>
+              <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
+                {error}
+              </div>
+              <div className="flex justify-end">
+                <Button
+                  className="bg-red-600 text-white hover:bg-red-700"
+                  onClick={() => {
+                    setShowErrorModal(false);
+                    if (operationType === 'listing') {
+                      setShowAddModal(false);
+                    }
+                  }}
                 >
                   Close
                 </Button>

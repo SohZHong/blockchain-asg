@@ -81,7 +81,7 @@ const requestBody: MultiBaas.EventQuery = {
 };
 
 // Updated marketplace address to the correct one that implements ERC721Receiver
-export const MARKETPLACE_ADDRESS = "0xa52ce5F40f414162B10fA33e8f3230bBA41cAF56";
+export const MARKETPLACE_ADDRESS = "0x41Be93E3914e4262dD7A08cEce2f80EB84b8B0e2";
 export const NFT_CONTRACT_ADDRESS = "0xc61BF2E3cD2E9C25619aAb85f516E7160f4e31c0";
 const CELO_RPC = "https://alfajores-forno.celo-testnet.org";
 const FEE_PERCENTAGE = 250; // 2.5% fee
@@ -90,9 +90,10 @@ export interface NFTMetadata {
   name: string;
   description: string;
   image: string;
-  rarity?: string;
-  // health?: number;
-  // attack?: number;
+  attributes?: {
+    trait_type: string;
+    value: string;
+  }[];
 }
 
 export interface ListingItem {
@@ -262,66 +263,43 @@ export const marketplaceService = {
 
   async removeListing(listingId: number, account: Account, client: ThirdwebClient): Promise<string> {
     try {
-      const payload: MultiBaas.PostMethodArgs = {
-        args: [listingId],
-        from: account.address,
-      };
+      const contract = getContract({
+        address: MARKETPLACE_ADDRESS,
+        abi: [
+          {
+            "inputs": [
+              {
+                "internalType": "uint256",
+                "name": "listingId",
+                "type": "uint256"
+              }
+            ],
+            "name": "cancelListing",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+          }
+        ],
+        client,
+        chain: CELO_ALFAJORES
+      });
 
-      const resp = await contractsApi.callContractFunction(
-        chain,
-        deployedAddressOrAlias,
-        contractLabel,
-        "cancelListing",
-        payload
-      );
+      const transaction = prepareContractCall({
+        contract,
+        method: "cancelListing",
+        params: [BigInt(listingId)] as const
+      });
 
-      if (resp.data.result.kind === "TransactionToSignResponse" && !resp.data.result.submitted) {
-        // Create a contract instance for the marketplace
-        const contract = getContract({
-          address: MARKETPLACE_ADDRESS,
-          abi: [
-            {
-              "inputs": [
-                {
-                  "internalType": "uint256",
-                  "name": "listingId",
-                  "type": "uint256"
-                }
-              ],
-              "name": "cancelListing",
-              "outputs": [],
-              "stateMutability": "nonpayable",
-              "type": "function"
-            }
-          ],
-          client,
-          chain: CELO_ALFAJORES
-        });
+      const tx = await sendTransaction({
+        transaction,
+        account
+      });
 
-        // Prepare and send the transaction
-        const transaction = prepareContractCall({
-          contract,
-          method: "cancelListing",
-          params: [BigInt(listingId)] as const
-        });
-
-        const tx = await sendTransaction({
-          transaction,
-          account
-        });
-
-        // Wait for transaction receipt
-        const receipt = await waitForReceipt(tx);
-        console.log("Cancel listing transaction receipt:", receipt);
-        return receipt.transactionHash;
-      }
-
-      throw new Error("Unexpected response from MultiBaas");
+      const receipt = await waitForReceipt(tx);
+      console.log("Cancel listing transaction receipt:", receipt);
+      return receipt.transactionHash;
     } catch (error) {
       console.error("Error in removeListing:", error);
-      if (isAxiosError(error)) {
-        console.error(`MultiBaas error with status '${error.response?.data?.status}' and message: ${error.response?.data?.message}`);
-      }
       throw error;
     }
   },
@@ -414,7 +392,7 @@ export const marketplaceService = {
     }
   },
 
-  async buyNFT(listingId: number, account: Account, client: ThirdwebClient): Promise<boolean> {
+  async buyNFT(listingId: number, account: Account, client: ThirdwebClient): Promise<string> {
     try {
       // Get the listing details first
       const listings = await this.fetchListings();
@@ -429,70 +407,45 @@ export const marketplaceService = {
       const feeAmount = (baseAmount * BigInt(FEE_PERCENTAGE)) / BigInt(10000);
       const totalAmount = baseAmount + feeAmount;
 
-      const payload: MultiBaas.PostMethodArgs = {
-        args: [listingId],
-        from: account.address,
-        value: totalAmount.toString(),
-      };
+      const contract = getContract({
+        address: MARKETPLACE_ADDRESS,
+        abi: [
+          {
+            "inputs": [
+              {
+                "internalType": "uint256",
+                "name": "listingId",
+                "type": "uint256"
+              }
+            ],
+            "name": "buyBeast",
+            "outputs": [],
+            "stateMutability": "payable",
+            "type": "function"
+          }
+        ],
+        client,
+        chain: CELO_ALFAJORES
+      });
 
-      const resp = await contractsApi.callContractFunction(
-        chain,
-        deployedAddressOrAlias,
-        contractLabel,
-        "buyBeast",
-        payload
-      );
+      const transaction = prepareContractCall({
+        contract,
+        method: "buyBeast",
+        params: [BigInt(listingId)] as const,
+        value: totalAmount
+      });
 
-      if (resp.data.result.kind === "TransactionToSignResponse" && !resp.data.result.submitted) {
-        // Create a contract instance for the marketplace
-        const contract = getContract({
-          address: MARKETPLACE_ADDRESS,
-          abi: [
-            {
-              "inputs": [
-                {
-                  "internalType": "uint256",
-                  "name": "listingId",
-                  "type": "uint256"
-                }
-              ],
-              "name": "buyBeast",
-              "outputs": [],
-              "stateMutability": "payable",
-              "type": "function"
-            }
-          ],
-          client,
-          chain: CELO_ALFAJORES
-        });
+      const tx = await sendTransaction({
+        transaction,
+        account
+      });
 
-        // Prepare and send the transaction
-        const transaction = prepareContractCall({
-          contract,
-          method: "buyBeast",
-          params: [BigInt(listingId)] as const,
-          value: totalAmount
-        });
-
-        const tx = await sendTransaction({
-          transaction,
-          account
-        });
-
-        // Wait for transaction receipt
-        const receipt = await waitForReceipt(tx);
-        console.log("Transaction receipt:", receipt);
-        return true;
-      }
-
-      throw new Error("Unexpected response from MultiBaas");
-    } catch (e) {
-      if (isAxiosError(e)) {
-        console.error(`MultiBaas error with status '${e.response?.data?.status}' and message: ${e.response?.data?.message}`);
-      } else {
-        console.error("An unexpected error occurred:", e);
-      }
-      throw e;
+      const receipt = await waitForReceipt(tx);
+      console.log("Transaction receipt:", receipt);
+      return receipt.transactionHash;
+    } catch (error) {
+      console.error("Error in buyNFT:", error);
+      throw error;
     }
   },
 }; 

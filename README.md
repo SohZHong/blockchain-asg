@@ -126,13 +126,15 @@ This project integrates with [Thirdweb Engine](https://portal.thirdweb.com/engin
 
 1. **Install Thirdweb Engine** on your server or use the hosted version.
 2. **Configure `.env`** with your Engine URL and secret key:
-   ```bash
-   ENGINE_URL=https://your-engine-host.com
-   THIRDWEB_SECRET_KEY=your-secret-key
-   NEXT_PUBLIC_THIRDWEB_ENGINE_WALLET_ADDRESS=your-wallet-address
-   ```
-   > [!TIP]
-   > It is recommend to follow their official setup guidelines [here](https://github.com/thirdweb-dev/engine?tab=readme-ov-file#setup)
+
+```bash
+ENGINE_URL=https://your-engine-host.com
+THIRDWEB_SECRET_KEY=your-secret-key
+NEXT_PUBLIC_THIRDWEB_ENGINE_WALLET_ADDRESS=your-wallet-address
+```
+
+> [!NOTE]
+> It is recommend to follow their official setup guidelines [here](https://github.com/thirdweb-dev/engine?tab=readme-ov-file#setup)
 
 ## How Multibaas is Used
 

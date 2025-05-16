@@ -6,6 +6,8 @@ import {Marketplace} from "../src/Marketplace.sol";
 
 contract DeployMarketplace is Script {
     function run() public returns (Marketplace) {
+        vm.createSelectFork("alfajores");
+
         // Start broadcasting transactions
         vm.startBroadcast();
         uint256 feePercentage = 250;

@@ -29,11 +29,11 @@ export default function BattleRoom({ playerAddress, onRoomSelect }: BattleRoomPr
     if (selectedNFT) {
       return {
         playerAddress,
-        atkMin: selectedNFT.atkMin,
-        atkMax: selectedNFT.atkMax,
-        health: selectedNFT.health,
+        atkMin: selectedNFT.metadata.attributes[3].value,
+        atkMax: selectedNFT.metadata.attributes[4].value,
+        health: selectedNFT.metadata.attributes[2].value,
         // Only passing the name for identification in the UI, not saved to DB
-        nftName: selectedNFT.name
+        nftName: selectedNFT.metadata.name
       };
     }
     

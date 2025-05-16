@@ -3,7 +3,6 @@ import { InferenceClient } from "@huggingface/inference";
 import fs from "fs/promises";
 import path from "path";
 import pinata from "@/common/pinata";
-import FormData from "form-data";
 
 // Metadata definitions
 const species = [
@@ -301,7 +300,7 @@ export async function POST(request: NextRequest) {
       };
 
       const metadataString = JSON.stringify(metadataContent);
-      const metadataFileName = `metadata_${timestamp}_${i}.json`;
+      const metadataFileName = `${i}.json`;
       const metadataFile = new File([metadataString], metadataFileName, {
         type: "application/json",
         lastModified: Date.now(),

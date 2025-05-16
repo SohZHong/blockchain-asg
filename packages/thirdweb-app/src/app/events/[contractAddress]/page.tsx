@@ -10,6 +10,7 @@ import { Spinner } from "@/components/Spinner";
 import { toast } from "sonner";
 import QRCode from "react-qr-code";
 import QrScanner from "@/components/custom/scanner";
+
 import {
   Dialog,
   DialogContent,
@@ -46,9 +47,27 @@ export default function ContractAddressPage() {
   const [isStartingEvent, setIsStartingEvent] = useState(false);
   const { account } = useThirdWeb();
   const [dialogOpen, setDialogOpen] = useState(false);
+  
+
+  // Initialize scan count from localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedScanCount = localStorage.getItem(`scanCount-${contractAddress}`);
+      if (storedScanCount) {
+        setScanCount(Number(storedScanCount));
+      }
+    }
+  }, [contractAddress]);
 
   const handleScanSuccess = async () => {
-    setScanCount((prev) => prev + 1);
+    const newCount = scanCount + 1;
+    setScanCount(newCount);
+    
+    // Save to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`scanCount-${contractAddress}`, newCount.toString());
+    }
+    
     setDialogOpen(false);
     window.location.reload();
   };
@@ -145,7 +164,6 @@ export default function ContractAddressPage() {
       }
     } catch (error) {
       console.error(error);
-      toast.error("Failed to start the event");
     } finally {
       setIsStartingEvent(false);
     }

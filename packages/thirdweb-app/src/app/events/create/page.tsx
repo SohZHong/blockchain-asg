@@ -285,10 +285,9 @@ export default function EventCreationPage() {
                   <div className="grid grid-cols-2 gap-4">
                     {imageCidList.map((imagecid) => (
                       <div key={imagecid} className="relative aspect-square">
-                        <Image
+                        <img
                           src={`https://ipfs.io/ipfs/${imagecid}`}
                           alt={`Generated image ${imagecid}`}
-                          fill
                           className="object-cover rounded-lg"
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         />

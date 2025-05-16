@@ -9,6 +9,8 @@ import { useParams } from "next/navigation";
 import useMultiBaas from "@/hooks/useMultiBaas";
 import { toast } from "sonner";
 import VerificationModal from "@/components/verificationModal";
+import { getSupabaseClient } from "@/lib/supabase";
+import Navbar from "@/components/custom/navbar";
 
 export default function MilestonesPage() {
   const { contractAddress } = useParams();
@@ -32,12 +34,24 @@ export default function MilestonesPage() {
       try {
         setIsLoading(true);
         
+        // Store this contract address in localStorage for NFT display
+        const storedContracts = localStorage.getItem('eventContracts') 
+          ? JSON.parse(localStorage.getItem('eventContracts') || '[]') 
+          : [];
+        
+        if (!storedContracts.includes(contractAddress)) {
+          const updatedContracts = [...storedContracts, contractAddress];
+          localStorage.setItem('eventContracts', JSON.stringify(updatedContracts));
+        }
+
+        const supabase = getSupabaseClient();
+        const { data, error } = await supabase.from("events").select("*").eq("address", contractAddress as string);
         // Get milestone requirements from contract
-        const milestones = await getMilestoneData(contractAddress as string);
+        const milestones = await getMilestoneData(contractAddress as string, data?.[0]?.event_id);
         console.log("Milestones from contract:", milestones);
         
         // Get user's current scan count
-        const scans = await getScanCount(contractAddress as string, account.address as string);
+        const scans = await getScanCount(contractAddress as string, account.address as string, data?.[0]?.event_id);
         console.log("User scan count:", scans);
         
         setScanCount(scans as number || 0);
@@ -56,7 +70,6 @@ export default function MilestonesPage() {
                    index % 4 === 2 ? 'event-bg.png' : 'story-bg1.png'}`,
             completed: scans ? Number(scans) >= Number(requirement) : false,
           }));
-          
           setMilestoneData(milestoneObjects);
         }
         
@@ -72,12 +85,18 @@ export default function MilestonesPage() {
   }, [contractAddress, account?.address, getMilestoneData, getScanCount]);
 
   const handleMintNFT = async (milestoneId: number) => {
+    console.log(`Starting mint process for milestone ${milestoneId}`);
     setMintingMilestoneId(milestoneId);
+    setCurrentMilestoneId(milestoneId);
     setIsVerificationModalOpen(true);
   };
 
   const handleVerificationSuccess = async () => {
-    if (currentMilestoneId === null) return;
+    console.log(`Verification successful, proceeding to mint for milestone ${currentMilestoneId}`);
+    if (currentMilestoneId === null) {
+      console.error("No milestone ID set for minting");
+      return;
+    }
     
     // Now proceed with minting after successful verification
     setMintingMilestoneId(currentMilestoneId);
@@ -105,11 +124,12 @@ export default function MilestonesPage() {
           [currentMilestoneId]: true
         }));
       } else {
-        throw new Error('Failed to mint NFT');
+        console.error('Mint failed:', data.error);
+        throw new Error(data.error || 'Failed to mint NFT');
       }
     } catch (error) {
       console.error('Mint NFT error:', error);
-      toast.error('Failed to mint NFT');
+      toast.error(error instanceof Error ? error.message : 'Failed to mint NFT');
       throw error; // Re-throw to be caught by the verification modal
     } finally {
       setMintingMilestoneId(null);
@@ -119,6 +139,7 @@ export default function MilestonesPage() {
 
   return (
     <div className="min-h-screen w-full bg-[url('/dapp/dapp-bg.png')] bg-cover bg-center text-white">
+      <Navbar />
       {/* Main Content Area */}
       <div className="hidden">
             <Navigation />

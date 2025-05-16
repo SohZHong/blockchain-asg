@@ -130,6 +130,7 @@ function Sidebar({
             }`}
             onClick={() => {
               if (item.id === "shop") router.push("/dapp/marketplace");
+              else if (item.id === "beasts") router.push("/dapp/beasts");
               else setSelectedTab(item.id);
             }}
             tabIndex={0}

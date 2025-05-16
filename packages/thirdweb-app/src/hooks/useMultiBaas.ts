@@ -60,6 +60,12 @@ interface MultiBaasHook {
     pageNum: number,
     limit: number
   ) => Promise<Array<Event> | null>;
+  getScanCount: (
+    contractAddress: string,
+    participantAddress: string,
+    eventId: number
+  ) => Promise<number | null>;
+  getMilestoneData: (contractAddress: string, eventId: number) => Promise<string[] | null>;
 }
 
 const useMultiBaasWithThirdweb = (): MultiBaasHook => {
@@ -77,6 +83,8 @@ const useMultiBaasWithThirdweb = (): MultiBaasHook => {
     process.env.NEXT_PUBLIC_MULTIBAAS_EVENT_FACTORY_CONTRACT_LABEL || "";
   const eventFactoryAddressLabel =
     process.env.NEXT_PUBLIC_MULTIBAAS_EVENT_FACTORY_ADDRESS_LABEL || "";
+  const eventImplementationContractLabel =
+    process.env.NEXT_PUBLIC_MULTIBAAS_EVENT_IMPLEMENTATION_CONTRACT_LABEL || ""; 
 
   const chain = "ethereum";
 
@@ -343,6 +351,47 @@ const useMultiBaasWithThirdweb = (): MultiBaasHook => {
     [eventsApi, chain, organiserAddressLabel, organiserContractLabel]
   );
 
+  const getScanCount = useCallback(
+    async (
+      contractAddress: string,
+      participantAddress: string,
+      eventId: number
+    ): Promise<number | null> => {
+      
+      try {
+        const result = await callContractFunction(
+          "scanCount",
+          "eventimplementation" + eventId,
+          eventImplementationContractLabel,
+          [participantAddress]
+        );
+        return result as number;
+      } catch (err) {
+        console.error("Error getting player hp:", err);
+        return null;
+      }
+    },
+    [callContractFunction, eventImplementationContractLabel]
+  );
+
+  const getMilestoneData = useCallback(
+    async (contractAddress: string, eventId: number): Promise<string[] | null> => {
+      console.log("asdf",eventImplementationContractLabel + eventId)
+      try {
+        const result = await callContractFunction(
+          "getMilestones",
+          "eventimplementation" + eventId,
+          eventImplementationContractLabel,
+        );
+        return result as string[];
+      } catch (err) {
+        console.error("Error getting player hp:", err);
+        return null;
+      }
+    },
+    [callContractFunction, eventImplementationContractLabel]
+  );
+
   const getOrganisedEvents = useCallback(
     async (
       pageNum: number = 1,
@@ -384,6 +433,8 @@ const useMultiBaasWithThirdweb = (): MultiBaasHook => {
     getBattleEndedEvents,
     getOrganiserEvent,
     getOrganisedEvents,
+    getScanCount,
+    getMilestoneData,
   };
 };
 

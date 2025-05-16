@@ -7,7 +7,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { RoomService } from "@/services/roomService";
 import { BattleApiService } from "@/services/battleApiService";
 import { createClient } from '@supabase/supabase-js';
-import { Room } from "@/types/battle";
 import { toast } from "sonner";
 import Image from "next/image";
 
@@ -43,6 +42,7 @@ export default function BattleRoomPage({ params }: { params: PageParams }) {
   const currentUserAddress = searchParams.get('username') || 'Anonymous';
   // Get the NFT image from URL parameter
   const myNftImage = searchParams.get('nftImage');
+  console.log("myNftImage", myNftImage);
   
   // State to store opponent's NFT image when it's received
   const [opponentNftImage, setOpponentNftImage] = useState<string | null>(null);
@@ -257,7 +257,7 @@ export default function BattleRoomPage({ params }: { params: PageParams }) {
           if (payload.table === 'gameLobbies') {
             const newRoom = payload.new;
             console.log('New room state:', newRoom);
-            setRoom((prev: Room | null) => {
+            setRoom((prev: any | null) => {
               const updatedRoom = prev ? { ...prev, ...newRoom } : newRoom;
               console.log('Updated room state:', updatedRoom);
               
@@ -527,10 +527,10 @@ export default function BattleRoomPage({ params }: { params: PageParams }) {
                   {/* Show correct NFT image based on whose view it is */}
                   {currentUserAddress === room.player1_address ? (
                     myNftImage ? (
-                      <Image
+                      <img
                         src={myNftImage}
                         alt={room.player1_nft_name || "Player 1 NFT"}
-                        fill
+                        
                         className="object-cover"
                       />
                     ) : (
@@ -540,10 +540,10 @@ export default function BattleRoomPage({ params }: { params: PageParams }) {
                     )
                   ) : (
                     opponentNftImage ? (
-                      <Image
+                      <img
                         src={opponentNftImage}
                         alt={room.player1_nft_name || "Player 1 NFT"}
-                        fill
+                        
                         className="object-cover"
                       />
                     ) : (
@@ -589,10 +589,10 @@ export default function BattleRoomPage({ params }: { params: PageParams }) {
                   {/* Show correct NFT image based on whose view it is */}
                   {currentUserAddress === room.player2_address ? (
                     myNftImage ? (
-                      <Image
+                      <img
                         src={myNftImage}
                         alt={room.player2_nft_name || "Player 2 NFT"}
-                        fill
+                        
                         className="object-cover"
                       />
                     ) : (
@@ -602,10 +602,10 @@ export default function BattleRoomPage({ params }: { params: PageParams }) {
                     )
                   ) : (
                     opponentNftImage ? (
-                      <Image
+                      <img
                         src={opponentNftImage}
                         alt={room.player2_nft_name || "Player 2 NFT"}
-                        fill
+                        
                         className="object-cover"
                       />
                     ) : (

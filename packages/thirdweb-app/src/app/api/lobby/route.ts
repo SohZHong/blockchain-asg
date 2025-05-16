@@ -20,7 +20,7 @@ function generateLobbyCode(): string {
 // Create a new lobby
 export async function POST(request: NextRequest) {
   try {
-    const { playerAddress } = await request.json();
+    const { playerAddress, player1NftImage } = await request.json();
     
     if (!playerAddress) {
       return NextResponse.json(
@@ -79,6 +79,8 @@ export async function POST(request: NextRequest) {
           player1_atk_max: 80,
           player2_atk_min: null,
           player2_atk_max: null,
+          player1_img: player1NftImage,
+          player2_img: null,
           created_at: new Date().toISOString(),
           status: 'open'
         }
@@ -107,7 +109,7 @@ export async function POST(request: NextRequest) {
 // Join or leave a lobby
 export async function PATCH(request: NextRequest) {
   try {
-    const { code, playerAddress, action } = await request.json();
+    const { code, playerAddress, action, player2NftImage } = await request.json();
 
     if (!code || !playerAddress || !action) {
       return NextResponse.json(
@@ -146,6 +148,7 @@ export async function PATCH(request: NextRequest) {
           player2_health: lobby.player1_health,
           player2_atk_min: lobby.player1_atk_min,
           player2_atk_max: lobby.player1_atk_max,
+          player2_img: player2NftImage,
           status: 'full'
         })
         .eq("code", code)

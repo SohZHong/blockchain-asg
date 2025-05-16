@@ -34,6 +34,7 @@ export interface RoomConfig {
   atkMax: number;
   health: number;
   nftName?: string;
+  nftImage?: string;
 }
 
 // Define the type to match the actual database columns
@@ -55,6 +56,7 @@ export class RoomService {
         player1_atk_min: config.atkMin,
         player1_atk_max: config.atkMax,
         player1_health: config.health,
+        player1_img: config.nftImage,
         status: 'waiting'
       }])
       .select()
@@ -76,6 +78,7 @@ export class RoomService {
         player2_atk_min: config.atkMin,
         player2_atk_max: config.atkMax,
         player2_health: config.health,
+        player2_img: config.nftImage,
         status: 'ready'
       })
       .eq('code', code)

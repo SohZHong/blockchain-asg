@@ -8,12 +8,14 @@ import { chain } from "@/common/constants";
 import { getContract } from "thirdweb";
 import { useThirdWeb } from "@/hooks/useThirdWeb";
 import { getOwnedNFTs } from "thirdweb/extensions/erc721";
+import { getSupabaseClient } from "@/lib/supabase";
 interface BattleRoomProps {
   playerAddress: string;
   onRoomSelect: (code: string) => void;
 }
 
 export default function BattleRoom({ playerAddress, onRoomSelect }: BattleRoomProps) {
+  const supabase = getSupabaseClient();
   const router = useRouter();
   const { account, client } = useThirdWeb();
   const [roomCode, setRoomCode] = useState('');

@@ -71,7 +71,7 @@ export default function Navbar() {
             </li>
             <li>
               <Link
-                href="/readyBattle"
+                href="/dapp/battle"
                 className="block py-2 px-3 text-white rounded md:hover:bg-transparent hover:text-blue-300 md:p-0"
                 aria-current="page"
               >

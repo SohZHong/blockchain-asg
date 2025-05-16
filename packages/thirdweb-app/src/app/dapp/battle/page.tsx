@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import BattleRoom from "@/components/dapp/battle-room";
 import { createClient } from '@supabase/supabase-js';
 import { useThirdWeb } from "@/hooks/useThirdWeb";
-
+import Navbar from "@/components/custom/navbar";
 interface BeastCard {
   id: number;
   name: string;
@@ -164,6 +164,7 @@ export default function BattleFieldPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-[url('/dapp/dapp-bg.png')] bg-cover bg-center md:py-10">
+      <Navbar />
       <div className="flex flex-col justify-between bg-white/90 w-screen h-screen md:w-[540px] md:h-auto rounded-lg px-6 relative">
         {/* Room Code Display */}
         <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-slate-600 px-4 py-2 rounded-lg text-white font-bold">

@@ -18,54 +18,75 @@ import { Event, EventField } from "@curvegrid/multibaas-sdk";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/custom/navbar";
 import Image from "next/image";
+import { getSupabaseClient } from "@/lib/supabase";
 
 export default function EventListingsPage() {
   const router = useRouter();
-  const { getOrganisedEvents } = useMultiBaasWithThirdweb();
+  // const { getOrganisedEvents } = useMultiBaasWithThirdweb();
 
+  const supabase = getSupabaseClient();
   // State for events and pagination
   const eventsPerPage = 10;
   const [events, setEvents] = useState<Array<any>>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  const extractEvents = (data: Event[]) => {
-    return data.map((item: Event) => {
-      const inputs = item.event.inputs;
-
-      return {
-        eventId: inputs.find((input: EventField) => input.name === "eventId")
-          ?.value,
-        name: inputs.find((input: EventField) => input.name === "name")?.value,
-        description: inputs.find(
-          (input: EventField) => input.name === "description"
-        )?.value,
-        startDate: inputs.find(
-          (input: EventField) => input.name === "startDate"
-        )?.value,
-        organizer: inputs.find(
-          (input: EventField) => input.name === "organizer"
-        )?.value,
-        eventContract: inputs.find(
-          (input: EventField) => input.name === "eventContract"
-        )?.value,
-      };
-    });
+  const extractEvents = (data: any[]) => {
+    return data.map((event) => ({
+      eventId: event.event_id,
+      name: event.name,
+      description: event.description,
+      startDate: event.start_date,
+      organizer: event.organizer,
+      eventContract: event.address,
+      location: event.location,
+      participantLimit: event.participant_limit,
+      registeredParticipants: event.registered_participants,
+      rewardCount: event.reward_count,
+      isStarted: event.is_started
+    }));
   };
 
   // Fetch events
   useEffect(() => {
     const fetchEvents = async () => {
       setLoading(true);
-      const fetchedEvents = await getOrganisedEvents(page, eventsPerPage);
-      if (fetchedEvents) {
-        setEvents(extractEvents(fetchedEvents));
+      try {
+        console.log("Fetching events from Supabase...");
+        
+        // First check if the table has any data
+        const { data: eventCount, error: countError } = await supabase
+          .from('events')
+          .select('*', { count: 'exact', head: true });
+          
+        console.log("Event count check:", { eventCount, countError });
+        
+        // Get the actual events
+        const { data: eventData, error: eventsError } = await supabase
+          .from('events')
+          .select('*')
+          .order('created_at', { ascending: false });
+          
+        console.log("Events query result:", { eventData, eventsError });
+        
+        if (eventsError) {
+          console.error("Supabase error:", eventsError);
+          return;
+        }
+        
+        // Process the real event data
+        const processedEvents = extractEvents(eventData);
+        console.log("Processed events:", processedEvents);
+        setEvents(processedEvents);
+      } catch (error) {
+        console.error("Error in fetchEvents:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchEvents();
-  }, [page, getOrganisedEvents]);
+  }, [page]);
 
   return (
     <main className="flex flex-col min-h-screen bg-black">
@@ -116,7 +137,7 @@ export default function EventListingsPage() {
                   {events.map((event, index) => (
                     <TableRow
                       key={index}
-                      onClick={() => router.push(`/event/${event.eventContract}`)}
+                      onClick={() => router.push(`/events/${event.eventContract}`)}
                       className="cursor-pointer hover:bg-zinc-800 transition"
                     >
                       <TableCell className="text-white">{event.eventId}</TableCell>
@@ -156,7 +177,7 @@ export default function EventListingsPage() {
             </div>
             <nav className="flex flex-col items-center justify-center mt-4">
               <Link href={"/organiser"}>Organiser Page</Link>
-              <Link href={"/event/create"}>Event Creation Page</Link>
+              <Link href={"/events/create"}>Event Creation Page</Link>
             </nav>
           </div>
         </div>

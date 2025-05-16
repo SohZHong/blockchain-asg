@@ -349,7 +349,7 @@ const useMultiBaasWithThirdweb = (): MultiBaasHook => {
       limit: number = 20
     ): Promise<Array<Event> | null> => {
       try {
-        const eventSignature = "EventCreated(uint256,address,address)";
+        const eventSignature = "EventCreated(uint256,address,address,string,string,string,string,uint256,uint256,uint256)";
         const response = await eventsApi.listEvents(
           undefined,
           undefined,

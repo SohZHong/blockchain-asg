@@ -18,6 +18,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import Navbar from "@/components/custom/navbar";
+import { CalendarIcon, MapPinIcon, UserIcon } from "lucide-react";
+
 
 interface EventData {
   eventId: number;
@@ -40,6 +42,8 @@ export default function ContractAddressPage() {
   const [isOrganiser, setIsOrganiser] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
   const [scanCount, setScanCount] = useState(0);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [isStartingEvent, setIsStartingEvent] = useState(false);
   const { account } = useThirdWeb();
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -70,8 +74,7 @@ export default function ContractAddressPage() {
           const eventStartDate = new Date(data.start_date!);
           const today = new Date();
           const canStartEvent =
-            account?.address?.toLowerCase() === data.organizer!.toLowerCase() &&
-            eventStartDate.toDateString() === today.toDateString();
+            account?.address?.toLowerCase() === data.organizer!.toLowerCase()
           setCanStartEvent(canStartEvent);
         }
         setEventData({
@@ -88,7 +91,7 @@ export default function ContractAddressPage() {
           isStarted: data.is_started,
         });
       }
-
+      setCanStartEvent(eventData?.isStarted!);
       setLoading(false);
     };
 
@@ -97,9 +100,11 @@ export default function ContractAddressPage() {
 
   if (loading) {
     return (
-      <div>
-        <Spinner />
-        <p className="text-white text-center">Loading Event...</p>
+      <div className="min-h-screen bg-gradient-to-b from-black to-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <Spinner size="large" />
+          <p className="text-white text-lg mt-4 font-medium">Loading Event...</p>
+        </div>
       </div>
     );
   }
@@ -112,6 +117,7 @@ export default function ContractAddressPage() {
 
   const onStartEvent = async () => {
     try {
+      setIsStartingEvent(true);
       const response = await fetch("/api/event/start", {
         method: "POST",
         body: JSON.stringify({
@@ -128,6 +134,8 @@ export default function ContractAddressPage() {
             onClick: () => console.log("Closed"),
           },
         });
+        // Refresh page after starting event
+        window.location.reload();
       } else {
         toast("Error Starting Event", {
           action: {
@@ -138,11 +146,15 @@ export default function ContractAddressPage() {
       }
     } catch (error) {
       console.error(error);
+      toast.error("Failed to start the event");
+    } finally {
+      setIsStartingEvent(false);
     }
   };
 
   const onRegisteringEvent = async () => {
     try {
+      setIsRegistering(true);
       const response = await fetch("/api/event/register", {
         method: "POST",
         body: JSON.stringify({
@@ -159,6 +171,8 @@ export default function ContractAddressPage() {
             onClick: () => console.log("Closed"),
           },
         });
+        // Refresh data after registration
+        window.location.reload();
       } else {
         toast("Error Joining Event", {
           action: {
@@ -169,113 +183,218 @@ export default function ContractAddressPage() {
       }
     } catch (error) {
       console.error(error);
+      toast.error("Failed to register for event");
+    } finally {
+      setIsRegistering(false);
     }
   };
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // This renders an ongoing event for participants (with QR code)
+  const renderOngoingEvent = () => {
+    if (!eventData || !eventData.isStarted || isOrganiser) return null;
+    
+    return (
+      <div className="w-full max-w-4xl">
+        <div className="bg-black rounded-xl overflow-hidden shadow-2xl mb-8">
+          <div className="p-8 flex flex-col md:flex-row gap-8">
+            <div className="bg-white p-6 rounded-lg shadow-lg flex-shrink-0">
+              <QRCode value={userInfo} size={200} />
+            </div>
+            
+            <div className="flex flex-col justify-between">
+              <div>
+                <h1 className="text-2xl md:text-4xl font-bold mb-2 text-white">{eventData.name}</h1>
+                <p className="text-gray-300 mb-6">{eventData.description}</p>
+                
+                <div className="space-y-3 mb-6">
+                  <div className="flex items-center gap-2 text-gray-300">
+                    <CalendarIcon className="h-5 w-5" />
+                    <span>{formatDate(eventData.startDate)}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-300">
+                    <MapPinIcon className="h-5 w-5" />
+                    <span>{eventData.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-300">
+                    <UserIcon className="h-5 w-5" />
+                    <span>{eventData.registeredParticipant} / {eventData.participantLimit} registered</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-auto">
+                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="w-full md:w-auto bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg">
+                      Scan QR Code
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Scan QR Code</DialogTitle>
+                    </DialogHeader>
+                    <QrScanner onSuccess={handleScanSuccess} />
+                  </DialogContent>
+                </Dialog>
+                
+                <div className="text-center md:text-left mt-4">
+                  <p className="text-gray-300 font-medium">Your Scan Count</p>
+                  <p className="text-3xl font-bold text-white">{scanCount}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+  
+  // This renders an event that hasn't started yet
+  const renderUpcomingEvent = () => {
+    if (!eventData) return null;
+    
+    return (
+      <div className="w-full max-w-4xl">
+        <div className="bg-gradient-to-br from-gray-900 to-black rounded-xl overflow-hidden shadow-2xl border border-gray-800">
+          <div className="h-48 bg-gradient-to-r from-purple-600 to-blue-600 relative">
+            <div className="absolute inset-0 bg-black opacity-20"></div>
+            <div className="absolute bottom-4 left-6">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                {eventData.isStarted ? "Ongoing" : "Upcoming"}
+              </span>
+            </div>
+          </div>
+          
+          <div className="p-6">
+            <div className="flex flex-col md:flex-row justify-between">
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold mb-2 text-white">{eventData.name}</h1>
+                <p className="text-gray-400 mb-6 max-w-2xl">{eventData.description}</p>
+              </div>
+              
+              <div className="text-right mb-4 md:mb-0">
+                <div className="bg-gray-800 rounded-lg px-4 py-3 inline-block">
+                  <p className="text-sm text-gray-400">Registered</p>
+                  <p className="text-xl font-bold text-white">
+                    {eventData.registeredParticipant} / {eventData.participantLimit}
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div className="flex items-center gap-3">
+                <CalendarIcon className="h-6 w-6 text-purple-500" />
+                <div>
+                  <p className="text-gray-400 text-sm">Date & Time</p>
+                  <p className="text-white">{formatDate(eventData.startDate)}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <MapPinIcon className="h-6 w-6 text-blue-500" />
+                <div>
+                  <p className="text-gray-400 text-sm">Location</p>
+                  <p className="text-white">{eventData.location}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <UserIcon className="h-6 w-6 text-green-500" />
+                <div>
+                  <p className="text-gray-400 text-sm">Organizer</p>
+                  <p className="text-white truncate max-w-[200px]">
+                    {eventData.organizer.slice(0, 6)}...{eventData.organizer.slice(-4)}
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="border-t border-gray-800 pt-6 flex flex-col md:flex-row justify-between items-center">
+              <div>
+                <Link
+                  href={`https://alfajores.celoscan.io/address/${eventData.eventContract}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 hover:text-blue-300 text-sm underline"
+                >
+                  View contract on explorer
+                </Link>
+              </div>
+              
+              <div>
+                {isOrganiser ? (
+                  <Button
+                    onClick={onStartEvent}
+                    disabled={!canStartEvent || isStartingEvent}
+                    className={`${
+                      canStartEvent 
+                        ? "bg-green-600 hover:bg-green-700" 
+                        : "bg-gray-600 cursor-not-allowed"
+                    } text-white font-bold py-3 px-6 rounded-lg`}
+                  >
+                    {isStartingEvent ? (
+                      <>
+                        <Spinner size="small" /> 
+                        <span className="ml-2">Starting...</span>
+                      </>
+                    ) : (
+                      <>Start Event</>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={onRegisteringEvent}
+                    disabled={isRegistering}
+                    className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-lg min-w-[150px]"
+                  >
+                    {isRegistering ? (
+                      <>
+                        <Spinner size="small" /> 
+                        <span className="ml-2">Registering...</span>
+                      </>
+                    ) : (
+                      <>Register</>
+                    )}
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="min-h-screen flex items-center flex-col justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-b from-black to-gray-900 text-white">
       <Navbar />
-      {eventData && !eventData.isStarted && (
-        <div className="w-full max-w-2xl bg-white rounded-lg shadow-md p-6">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold mb-4">{eventData?.name}</h1>
-            <h3 className="text-lg font-semibold mb-4">
-              Registered: {eventData?.registeredParticipant}
-            </h3>
+      
+      <div className="w-full max-w-7xl mx-auto px-4 pt-24 pb-16 flex flex-col items-center">
+        {account?.address ? (
+          <>
+            {renderOngoingEvent()}
+            {renderUpcomingEvent()}
+          </>
+        ) : (
+          <div className="text-center p-8 bg-gray-900 rounded-xl border border-gray-800 shadow-xl">
+            <h2 className="text-2xl font-bold mb-4">Connect Your Wallet</h2>
+            <p className="text-gray-400 mb-6">Please connect your wallet to view event details and register</p>
           </div>
-
-          <div className="space-y-4">
-            <div>
-              <h2 className="text-lg font-semibold">Description</h2>
-              <p className="text-gray-600">{eventData?.description}</p>
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold">Start Date</h2>
-              <p className="text-gray-600">{eventData?.startDate}</p>
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold">Started</h2>
-              <p className="text-gray-600">{eventData?.isStarted}</p>
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold">Organizer</h2>
-              <p className="text-gray-600">{eventData?.organizer}</p>
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold">Event Contract</h2>
-              <Link
-                href={`https://alfajores.celoscan.io/address/${eventData?.eventContract}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 hover:text-blue-700 underline"
-              >
-                {eventData?.eventContract}
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-      {eventData && !eventData.isStarted && isOrganiser && (
-        <div className="mt-6">
-          <Button
-            onClick={onStartEvent}
-            disabled={!canStartEvent}
-            className="bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-700 transition"
-          >
-            Start Event
-          </Button>
-        </div>
-      )}
-      {!loading && eventData && eventData.isStarted && !isOrganiser && (
-        <>
-          <h1 className="text-3xl font-bold">Ongoing Event</h1>
-
-          {account?.address ? (
-            <>
-              <div className="bg-white p-4 rounded-lg shadow-lg">
-                <QRCode value={userInfo} size={256} />
-              </div>
-
-              <div className="text-center">
-                <p className="text-lg font-semibold">Your Scan Count</p>
-                <p className="text-4xl font-bold">{scanCount}</p>
-              </div>
-
-              <div className="text-center max-w-md">
-                <h2 className="text-xl font-semibold mb-2">{eventData.name}</h2>
-                <p className="text-gray-600">{eventData.description}</p>
-                <p className="text-gray-600 mt-2">{eventData.location}</p>
-              </div>
-
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogTrigger asChild>
-                  <button className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
-                    Scan QR Code
-                  </button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Scan QR Code</DialogTitle>
-                  </DialogHeader>
-                  <QrScanner onSuccess={handleScanSuccess} />
-                </DialogContent>
-              </Dialog>
-            </>
-          ) : (
-            <p className="text-lg">Please connect your wallet to participate</p>
-          )}
-        </>
-      )}
-      {!loading && eventData && !eventData.isStarted && !isOrganiser && (
-        <div className="mt-6">
-          <Button
-            onClick={onRegisteringEvent}
-            className="bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-700 transition"
-          >
-            Register
-          </Button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

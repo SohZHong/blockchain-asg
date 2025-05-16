@@ -107,7 +107,8 @@ export default function Marketplace() {
       const tx = await marketplaceService.addListing(
         {
           tokenId: newListing.tokenId,
-          price: priceInWei
+          price: priceInWei,
+          nftAddress: newListing.nftAddress
         },
         account,
         client

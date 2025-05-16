@@ -108,6 +108,7 @@ export interface ListingItem {
 export interface NewListing {
   tokenId: string;
   price: string;
+  nftAddress: string;
 }
 
 const fetchNFTMetadata = async (nftAddress: string, tokenId: number): Promise<NFTMetadata> => {
@@ -241,7 +242,7 @@ export const marketplaceService = {
         contract,
         method: "listBeast",
         params: [
-          NFT_CONTRACT_ADDRESS,
+          listing.nftAddress,
           BigInt(listing.tokenId),
           BigInt(listing.price)
         ] as const

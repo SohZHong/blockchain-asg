@@ -2,12 +2,11 @@
 
 import React from "react";
 import Image from "next/image";
-import { BattleNFT } from "@/data/dummyNfts";
 
 interface NFTSelectorProps {
-  nfts: BattleNFT[];
-  selectedNFT: BattleNFT | null;
-  onSelectNFT: (nft: BattleNFT) => void;
+  nfts: any[];
+  selectedNFT: any | null;
+  onSelectNFT: (nft: any) => void;
 }
 
 export default function NFTSelector({ 
@@ -15,6 +14,7 @@ export default function NFTSelector({
   selectedNFT, 
   onSelectNFT 
 }: NFTSelectorProps) {
+  console.log(nfts);
   return (
     <div className="w-full">
       <h3 className="text-xl font-bold mb-4">Select Your NFT Champion</h3>
@@ -32,11 +32,10 @@ export default function NFTSelector({
             `}
           >
             <div className="aspect-square relative overflow-hidden rounded-md mb-3">
-              <Image
-                src={nft.image}
-                alt={nft.name}
-                fill
-                className="object-cover"
+              <img
+                src={nft.metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/")}
+                alt={nft.metadata.name}
+                className="h-max"
               />
             </div>
             
@@ -46,11 +45,11 @@ export default function NFTSelector({
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div className="flex flex-col border border-gray-700 rounded p-2">
                 <span className="text-gray-400">Health</span>
-                <span className="font-bold text-green-400">{nft.health}</span>
+                <span className="font-bold text-green-400">{nft.metadata.attributes[2].value}</span>
               </div>
               <div className="flex flex-col border border-gray-700 rounded p-2">
                 <span className="text-gray-400">Attack</span>
-                <span className="font-bold text-red-400">{nft.atkMin}-{nft.atkMax}</span>
+                <span className="font-bold text-red-400">{nft.metadata.attributes[3].value}-{nft.metadata.attributes[4].value}</span>
               </div>
             </div>
             

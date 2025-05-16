@@ -4,8 +4,10 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { RoomService, RoomConfig } from "@/services/roomService";
 import NFTSelector from "./nft-selector";
-import { dummyNFTs, BattleNFT } from "@/data/dummyNfts";
-
+import { chain } from "@/common/constants";
+import { getContract } from "thirdweb";
+import { useThirdWeb } from "@/hooks/useThirdWeb";
+import { getOwnedNFTs } from "thirdweb/extensions/erc721";
 interface BattleRoomProps {
   playerAddress: string;
   onRoomSelect: (code: string) => void;
@@ -13,14 +15,15 @@ interface BattleRoomProps {
 
 export default function BattleRoom({ playerAddress, onRoomSelect }: BattleRoomProps) {
   const router = useRouter();
+  const { account, client } = useThirdWeb();
   const [roomCode, setRoomCode] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [subscription, setSubscription] = useState<any>(null);
-  const [selectedNFT, setSelectedNFT] = useState<BattleNFT | null>(null);
-
+  const [selectedNFT, setSelectedNFT] = useState<any>(null);
+  const [userNfts, setUserNfts] = useState<any[]>([]);
   // Updated configuration using selected NFT values or defaults
   const getBattleConfig = (): RoomConfig => {
     if (selectedNFT) {
@@ -43,7 +46,46 @@ export default function BattleRoom({ playerAddress, onRoomSelect }: BattleRoomPr
     };
   };
 
+  const fetchUserNfts = async () => {
+    const eventContracts = localStorage.getItem('eventContracts') 
+      ? JSON.parse(localStorage.getItem('eventContracts') || '[]') 
+      : [];
+    
+    let allNFTs: any[] = [];
+    
+    for (const contractAddress of eventContracts) {
+      try {
+        const contract = getContract({
+          address: contractAddress, 
+          chain,
+          client
+        });
+        
+        if (!contract) continue;
+        
+        const nfts = await getOwnedNFTs({
+          contract,
+          owner: account?.address || '',
+        });
+        
+        // Add contract info to each NFT
+        const processedNFTs = nfts.map(nft => ({
+          ...nft,
+          contractAddress
+        }));
+        
+        allNFTs = [...allNFTs, ...processedNFTs];
+      } catch (contractError) {
+        console.error(`Error fetching NFTs from contract ${contractAddress}:`, contractError);
+        // Continue with next contract
+      }
+    }
+    console.log(allNFTs);
+    setUserNfts(allNFTs);
+  }
+
   useEffect(() => {
+    fetchUserNfts();
     return () => {
       if (subscription) {
         subscription.unsubscribe();
@@ -120,7 +162,7 @@ export default function BattleRoom({ playerAddress, onRoomSelect }: BattleRoomPr
       // Note: We don't reset isJoining here to keep button disabled after successful join
     }
   };
-
+console.log("selectedNFT", selectedNFT);
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-[url('/dapp/dapp-bg.png')] bg-cover bg-center">
       <div className="bg-black/60 backdrop-blur-md p-8 rounded-xl text-white text-center w-full max-w-2xl">
@@ -131,7 +173,7 @@ export default function BattleRoom({ playerAddress, onRoomSelect }: BattleRoomPr
         {/* NFT Selector Component */}
         <div className="mb-8">
           <NFTSelector 
-            nfts={dummyNFTs} 
+            nfts={userNfts} 
             selectedNFT={selectedNFT} 
             onSelectNFT={setSelectedNFT} 
           />
@@ -139,8 +181,8 @@ export default function BattleRoom({ playerAddress, onRoomSelect }: BattleRoomPr
 
         {selectedNFT && (
           <div className="mb-6 p-4 bg-blue-500/20 border border-blue-500 rounded-lg">
-            <h3 className="text-xl font-bold">Selected Champion: {selectedNFT.name}</h3>
-            <p className="text-gray-300">Ready for battle with {selectedNFT.health} HP and {selectedNFT.atkMin}-{selectedNFT.atkMax} attack power!</p>
+            <h3 className="text-xl font-bold">Selected Champion: {selectedNFT.metadata.name}</h3>
+            <p className="text-gray-300">Ready for battle with {selectedNFT.metadata.attributes[2].value} HP and {selectedNFT.metadata.attributes[3].value}-{selectedNFT.metadata.attributes[4].value} attack power!</p>
           </div>
         )}
 

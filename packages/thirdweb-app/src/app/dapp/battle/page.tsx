@@ -7,6 +7,10 @@ import BattleRoom from "@/components/dapp/battle-room";
 import { createClient } from '@supabase/supabase-js';
 import { useThirdWeb } from "@/hooks/useThirdWeb";
 import Navbar from "@/components/custom/navbar";
+import { getContract } from "thirdweb";
+import { chain } from "@/common/constants";
+import { getOwnedNFTs } from "thirdweb/extensions/erc721";
+
 interface BeastCard {
   id: number;
   name: string;
@@ -27,7 +31,7 @@ interface Player {
 
 export default function BattleFieldPage() {
   const router = useRouter();
-  const { account } = useThirdWeb();
+  const { account, client } = useThirdWeb();
   const [supabase] = useState(() => createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -78,40 +82,43 @@ export default function BattleFieldPage() {
     setGameState('waiting');
   };
 
-  const generatePlayerCards = (): BeastCard[] => {
-    return [
-      {
-        id: 1,
-        name: "LUMINA",
-        image: "/marketplace/common-2.png",
-        health: 100,
-        maxHealth: 100,
-        attack: "20-80",
-        type: "Common",
-        element: "Natura",
-      },
-      {
-        id: 2,
-        name: "OWLBEAR",
-        image: "/marketplace/rare.png",
-        health: 2200,
-        maxHealth: 2200,
-        attack: "30-160",
-        type: "Rare",
-        element: "Lighting",
-      },
-      {
-        id: 3,
-        name: "DRAGON",
-        image: "/marketplace/mythic-2-square.png",
-        health: 1200,
-        maxHealth: 1200,
-        attack: "40-100",
-        type: "Mythic",
-        element: "Earth",
-      },
-    ];
-  };
+  const generatePlayerCards = async () => {
+    const eventContracts = localStorage.getItem('eventContracts') 
+      ? JSON.parse(localStorage.getItem('eventContracts') || '[]') 
+      : [];
+    
+    let allNFTs: any[] = [];
+    
+    for (const contractAddress of eventContracts) {
+      try {
+        const contract = getContract({
+          address: contractAddress, 
+          chain,
+          client
+        });
+        
+        if (!contract) continue;
+        
+        const nfts = await getOwnedNFTs({
+          contract,
+          owner: account?.address || '',
+        });
+        
+        // Add contract info to each NFT
+        const processedNFTs = nfts.map(nft => ({
+          ...nft,
+          contractAddress
+        }));
+        
+        allNFTs = [...allNFTs, ...processedNFTs];
+      } catch (contractError) {
+        console.error(`Error fetching NFTs from contract ${contractAddress}:`, contractError);
+        // Continue with next contract
+      }
+    }
+
+    return allNFTs;
+  }
 
   // If wallet not connected, show error message
   if (!account) {

@@ -271,7 +271,7 @@ export default function EventCreationPage() {
                 <Button
                   type="button"
                   onClick={() => promptImage(form.getValues("prompt"))}
-                  disabled={isGenerating}
+                  disabled={isGenerating || !form.getValues("prompt")}
                   className="bg-white text-black hover:bg-gray-200"
                 >
                   {isGenerating ? "Generating..." : "Prompt Your Image"}

@@ -229,6 +229,17 @@ export default function Dapp() {
   const basicActivities = isEventCreator
     ? [
         {
+          id: "organiser",
+          title: "Organiser",
+          subtitle: "GET ORGANISER PASS",
+          image: "/dapp/bg2.png",
+          color: "bg-green-700",
+          onClick: () => {
+            setActivityLoading(true);
+            router.push("/organiser");
+          },
+        },
+        {
           id: "events/create",
           title: "Create Event",
           subtitle: "CREATE NEW EVENT",

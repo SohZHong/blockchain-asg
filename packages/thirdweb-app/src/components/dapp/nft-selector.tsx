@@ -39,8 +39,8 @@ export default function NFTSelector({
               />
             </div>
             
-            <h4 className="font-bold text-lg">{nft.name}</h4>
-            <p className="text-sm text-gray-300 mb-2">{nft.description}</p>
+            <h4 className="font-bold text-lg">{nft.metadata.name}</h4>
+            <p className="text-sm text-gray-300 mb-2">{nft.metadata.description}</p>
             
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div className="flex flex-col border border-gray-700 rounded p-2">
